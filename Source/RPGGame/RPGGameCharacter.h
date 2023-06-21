@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "EnumHeader.h"
 #include "RPGGameCharacter.generated.h"
 
 
@@ -38,6 +39,10 @@ class ARPGGameCharacter : public ACharacter
 	class UInputAction* LookAction;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data", Meta = (AllowprivateAccess = true))
+	EWeaponEnum WeaponEnum;
+
+public:
 	ARPGGameCharacter();
 	
 
@@ -62,5 +67,12 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+
+public:
+
+	UFUNCTION(BlueprintCallable, Category = "Test")
+	void Test();
+
 };
 

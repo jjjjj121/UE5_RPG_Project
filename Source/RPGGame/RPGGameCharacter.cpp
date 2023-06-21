@@ -66,6 +66,7 @@ void ARPGGameCharacter::BeginPlay()
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -125,5 +126,8 @@ void ARPGGameCharacter::Look(const FInputActionValue& Value)
 }
 
 
-
+void ARPGGameCharacter::Test()
+{
+	WeaponEnum = EWeaponEnum::GreatSword;
+}
 
