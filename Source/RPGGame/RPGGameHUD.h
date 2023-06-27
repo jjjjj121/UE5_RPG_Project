@@ -13,5 +13,12 @@ UCLASS()
 class RPGGAME_API ARPGGameHUD : public AHUD
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Widget")
+	TSubclassOf<UUserWidget> HUDWidgetclass;
 	
+public:
+	void BeginPlay() override;
+
 };

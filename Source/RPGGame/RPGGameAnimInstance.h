@@ -34,7 +34,7 @@ private:
 	bool IsFaliing = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	EWeaponEnum WeaponEnum;
+	EWeaponType WeaponEnum;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))

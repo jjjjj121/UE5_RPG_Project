@@ -38,9 +38,17 @@ class ARPGGameCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	/** Interation Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
+
+	/** Inventory Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InventoryAction;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data", Meta = (AllowprivateAccess = true))
-	EWeaponEnum WeaponEnum;
+	EWeaponType WeaponEnum;
 
 public:
 	ARPGGameCharacter();
@@ -53,7 +61,10 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+	
+	void Interact(const FInputActionValue& Value);
+
+	void Inventory(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
@@ -73,6 +84,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Test")
 	void Test();
+
+	
 
 };
 

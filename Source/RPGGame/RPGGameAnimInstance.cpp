@@ -37,8 +37,6 @@ void URPGGameAnimInstance::UpdateAnimProperty()
 	Velocity = MovementComponent->Velocity;
 	CurDirection= CalculateDirection(MovementComponent->Velocity, OwningCharacter->GetActorRotation());
 
-	UE_LOG(LogTemp, Warning, TEXT("Direction : %f"), CurDirection);
-
 	//2D Size == vector length XY
 	CurrentPawnSpeed = Velocity.Size2D();
 

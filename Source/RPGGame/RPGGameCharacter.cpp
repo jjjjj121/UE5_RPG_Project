@@ -49,6 +49,18 @@ ARPGGameCharacter::ARPGGameCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	/*맵핑 설정 추가*/
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Interaction(TEXT("/Game/ThirdPerson/Input/Actions/IA_Interaction.IA_Interaction"));
+	if (IA_Interaction.Succeeded()) {
+		InteractAction = IA_Interaction.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Inventory(TEXT("/Game/ThirdPerson/Input/Actions/IA_Inventory.IA_Inventory"));
+	if (IA_Interaction.Succeeded()) {
+		InventoryAction = IA_Inventory.Object;
+	}
+
 }
 
 void ARPGGameCharacter::BeginPlay()
@@ -85,6 +97,11 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::Look);
 
+		//Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGGameCharacter::Interact);
+
+		//Inventory
+		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ARPGGameCharacter::Inventory);
 	}
 
 }
@@ -125,9 +142,26 @@ void ARPGGameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ARPGGameCharacter::Interact(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Interact In"));
+	if (Value.Get<bool>()) {
+		UE_LOG(LogTemp, Warning, TEXT("Interact On"));
+	}
+	
+}
+
+void ARPGGameCharacter::Inventory(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Inventory In"));
+	if (Value.Get<bool>()) {
+		UE_LOG(LogTemp, Warning, TEXT("Inventory On"));
+	}
+}
+
 
 void ARPGGameCharacter::Test()
 {
-	WeaponEnum = EWeaponEnum::GreatSword;
+	WeaponEnum = EWeaponType::GreatSword;
 }
 
