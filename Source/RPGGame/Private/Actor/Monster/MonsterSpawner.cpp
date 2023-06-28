@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actor/MonsterSpawner.h"
-#include "Actor/Monster.h"
+#include "Actor/Monster/MonsterSpawner.h"
+#include "Actor/Monster/Monster.h"
 
 // Sets default values
 AMonsterSpawner::AMonsterSpawner()

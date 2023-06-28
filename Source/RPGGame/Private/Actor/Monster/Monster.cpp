@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actor/Monster.h"
+#include "Actor/Monster/Monster.h"
 
 // Sets default values
 AMonster::AMonster()

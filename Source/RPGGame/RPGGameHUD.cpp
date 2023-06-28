@@ -9,10 +9,10 @@ void ARPGGameHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UUserWidget* HUDWidget = Cast<UUserWidget>(CreateWidget(GetWorld(), HUDWidgetclass));
+	/*UUserWidget* HUDWidget = Cast<UUserWidget>(CreateWidget(GetWorld(), HUDWidgetclass));
 
 	if (HUDWidget) {
 		HUDWidget->AddToViewport();
-	}
+	}*/
 
 }
