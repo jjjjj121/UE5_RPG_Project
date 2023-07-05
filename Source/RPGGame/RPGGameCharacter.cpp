@@ -9,6 +9,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "RPGGameAnimInstance.h"
+#include "Actor/Item/EquipItem.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,7 +62,13 @@ ARPGGameCharacter::ARPGGameCharacter()
 	if (IA_Interaction.Succeeded()) {
 		InventoryAction = IA_Inventory.Object;
 	}
+	
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Attack(TEXT("/Game/ThirdPerson/Input/Actions/IA_Attack.IA_Attack"));
+	if (IA_Attack.Succeeded()) {
+		AttackAction = IA_Attack.Object;
+	}
 
+	AttackEndComboState();
 }
 
 void ARPGGameCharacter::BeginPlay()
@@ -76,8 +84,66 @@ void ARPGGameCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	/*Anim Instance Init*/
+	AnimInstance = Cast<URPGGameAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->OnMontageEnded.AddDynamic(this, &ARPGGameCharacter::OnAttackMontageEnded);
+
+	//OnNextAttack 델리게이트에 람다 함수식 추가 -> Broadcast시 호출
+	AnimInstance->OnNextAttack.AddLambda([this]()->void {
+		CanNextCombo = false;
+		if (IsComboInputOn) {
+			AttackStartComboState();
+			AnimInstance->JumpToAttackMontageSection(CurrentCombo);	//다음 콤보 Montage로 switching
+			UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
+		}
+		});
+
 }
 
+void ARPGGameCharacter::Attack()
+{
+	//공격 중인경우
+	if (IsAttacking) {
+		//다음 콤보가 있는 경우
+		if (CanNextCombo) {
+			IsComboInputOn = true;
+			UE_LOG(LogTemp, Warning, TEXT("IsComboInputOn"));
+		}
+	}
+	//첫 Attack 콤보인 경우
+	else {
+		AttackStartComboState();
+		AnimInstance->PlayAttackMontage();	//Montage 실행
+		IsAttacking = true;
+	}
+}
+
+bool ARPGGameCharacter::GetIsAttacking()
+{
+	return IsAttacking;
+}
+
+
+void ARPGGameCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	IsAttacking = false;
+	AttackEndComboState();
+}
+
+void ARPGGameCharacter::AttackStartComboState()
+{
+	CanNextCombo = true;
+	IsComboInputOn = false;
+	CurrentCombo = FMath::Clamp<int32>(CurrentCombo +1, 1, AnimInstance->GetMaxCombo());
+}
+
+void ARPGGameCharacter::AttackEndComboState()
+{
+	CanNextCombo = false;
+	IsComboInputOn = false;
+	CurrentCombo = 0;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -98,10 +164,13 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::Look);
 
 		//Interact
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGGameCharacter::Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnInteract);
 
 		//Inventory
-		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ARPGGameCharacter::Inventory);
+		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnInventory);
+
+		//Attack
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnAttack);
 	}
 
 }
@@ -142,7 +211,7 @@ void ARPGGameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ARPGGameCharacter::Interact(const FInputActionValue& Value)
+void ARPGGameCharacter::OnInteract(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Interact In"));
 	if (Value.Get<bool>()) {
@@ -151,7 +220,7 @@ void ARPGGameCharacter::Interact(const FInputActionValue& Value)
 	
 }
 
-void ARPGGameCharacter::Inventory(const FInputActionValue& Value)
+void ARPGGameCharacter::OnInventory(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Inventory In"));
 	if (Value.Get<bool>()) {
@@ -159,9 +228,27 @@ void ARPGGameCharacter::Inventory(const FInputActionValue& Value)
 	}
 }
 
-
-void ARPGGameCharacter::Test()
+void ARPGGameCharacter::OnAttack(const FInputActionValue& Value)
 {
-	WeaponEnum = EWeaponType::GreatSword;
+	this->Attack();
+}
+
+
+void ARPGGameCharacter::EquipWeapon()
+{
+	UWorld* world = GetWorld();
+	if (world) {
+		FActorSpawnParameters SpawnPrams;
+		SpawnPrams.Owner = this;
+
+		FRotator rotator;
+		FVector spawnlocation = GetMesh()->GetSocketLocation(FName(TEXT("Weapon")));
+		
+		Weapon = Cast<AEquipItem>(world->SpawnActor<AActor>(AEquipItem::StaticClass(), spawnlocation, rotator, SpawnPrams));
+
+		
+
+	}
+	//AnimInstance->SetBehavior();
 }
 

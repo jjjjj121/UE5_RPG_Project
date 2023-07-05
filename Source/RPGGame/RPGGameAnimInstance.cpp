@@ -6,6 +6,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/Vector.h"
 #include "RPGGameCharacter.h"
+#include "Actor/Item/AttackBehavior.h"
+#include "Actor/Item/AttackBehavior_Non.h"
+
+URPGGameAnimInstance::URPGGameAnimInstance()
+{
+
+	SetBehavior(UAttackBehavior_Non::StaticClass());
+
+} 
 
 void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
@@ -42,12 +51,11 @@ void URPGGameAnimInstance::UpdateAnimProperty()
 
 	FVector Acceleration = MovementComponent->GetCurrentAcceleration();
 	if (Acceleration != FVector(0.0f, 0.0f, 0.0f) && CurrentPawnSpeed > 3.0f) {
-		SholdMove = true;
+		ShouldMove = true;
 	}
 	else {
-		SholdMove = false;
+		ShouldMove = false;
 	}
-
 }
 
 void URPGGameAnimInstance::UpdateIsPawnFalling()
@@ -58,5 +66,47 @@ void URPGGameAnimInstance::UpdateIsPawnFalling()
 void URPGGameAnimInstance::UpdateWeapon()
 {
 	this->WeaponEnum = OwningCharacter->WeaponEnum;
+
+}
+
+void URPGGameAnimInstance::PlayAttackMontage()
+{
+	Montage_Play(AttackBehavior->AttackMontage, 1.0f);
+
+}
+
+void URPGGameAnimInstance::JumpToAttackMontageSection(int32 NewSection)
+{
+	Montage_SetNextSection(GetAttackMontageSectionName(NewSection - 1), GetAttackMontageSectionName(NewSection), AttackBehavior->AttackMontage);
+}
+
+void URPGGameAnimInstance::AnimNotify_AttackHitNotify()
+{
+	//해당 델리게이트 안에 있는 모든 함수 실행
+	OnAttackHit.Broadcast();
+}
+
+void URPGGameAnimInstance::AnimNotify_NextAttackNotify()
+{
+	OnNextAttack.Broadcast();
+}
+
+
+FName URPGGameAnimInstance::GetAttackMontageSectionName(int32 Section)
+{
+	return AttackBehavior->GetAttackMontageSectionName(Section);
+}
+
+
+int32 URPGGameAnimInstance::GetMaxCombo()
+{
+	return AttackBehavior->MaxCombo;
+}
+
+void URPGGameAnimInstance::SetBehavior(TSubclassOf<UAttackBehavior> Behavior)
+{
+	AttackBehavior = NewObject<UAttackBehavior>(this, Behavior, FName(TEXT("Behavior")));
+
+	AttackBehavior->ParentAnimInstance = this;
 
 }

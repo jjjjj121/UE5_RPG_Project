@@ -106,6 +106,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool D_IsDualWield;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class UAttackBehavior> D_AttackBehavior;
+
 };
 
 //Monster Table

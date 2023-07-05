@@ -9,10 +9,12 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "RPGGame/RPGGameCharacter.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 //Black Board 에 해당 Key로 변수에 접근하기 위함 - C++ 과 Editor의 Blackboard 변수를 연결
 const FName AMonsterAIController::Key_HomePos(TEXT("HomePos"));
 const FName AMonsterAIController::Key_Patrol(TEXT("PatrolPos"));
-const FName AMonsterAIController::Key_TargetLocation(TEXT("TargetLocation"));
+const FName AMonsterAIController::Key_Target(TEXT("Target"));
 const FName AMonsterAIController::Key_CanSeePlayer(TEXT("CanSeePlayer"));
 const FName AMonsterAIController::Key_IsPlayerInMeleeRange(TEXT("IsPlayerInMeleeRange"));
 
@@ -44,7 +46,7 @@ void AMonsterAIController::SetPerceptionSystem()
 	SightConfig->SightRadius = AISightRadius;								//감지 시야 반경
 	SightConfig->LoseSightRadius = AILoseSightRadius;						//감지 후 인지 최대 반경
 	SightConfig->PeripheralVisionAngleDegrees = AIFieldOfView;				//주변 시야 각도
-	SightConfig->SetMaxAge(AISightAge);										//생성된 자극이 지속되는 시간
+	SightConfig->SetMaxAge(AISightAge);								//생성된 자극이 지속되는 시간
 	SightConfig->AutoSuccessRangeFromLastSeenLocation = AILastSeenLocation;	//마지막 감지 위치 범위
 
 	//감지 대상 설정
@@ -66,6 +68,7 @@ void AMonsterAIController::OnTargetDetected(AActor* Actor, FAIStimulus Stimulus)
 	if (ARPGGameCharacter* const player = Cast<ARPGGameCharacter>(Actor)) {
 		//Target 감지 시 blackboard true로 업데이트
 		BlackBoard->SetValueAsBool(Key_CanSeePlayer, Stimulus.WasSuccessfullySensed());
+		BlackBoard->SetValueAsObject(Key_Target, Actor);
 		UE_LOG(LogTemp, Warning, TEXT("TARGET DETECTED"));
 	}
 }
@@ -95,5 +98,9 @@ void AMonsterAIController::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("AI Controller couldn't run behavior tree"));
 	}
 	BT_Component->StartTree(*BTree);
+
+
+
+	GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = 200.0f;;
 
 }

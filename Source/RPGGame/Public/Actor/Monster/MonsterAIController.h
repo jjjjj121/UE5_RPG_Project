@@ -45,7 +45,7 @@ public:
 	//Blackboard Key
 	static const FName Key_HomePos;
 	static const FName Key_Patrol;
-	static const FName Key_TargetLocation;
+	static const FName Key_Target;
 	static const FName Key_CanSeePlayer;
 	static const FName Key_IsPlayerInMeleeRange;
 

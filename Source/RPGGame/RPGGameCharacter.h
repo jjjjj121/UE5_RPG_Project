@@ -46,6 +46,10 @@ class ARPGGameCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* InventoryAction;
 
+	/** Attack Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* AttackAction;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data", Meta = (AllowprivateAccess = true))
 	EWeaponType WeaponEnum;
@@ -62,9 +66,11 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 	
-	void Interact(const FInputActionValue& Value);
+	void OnInteract(const FInputActionValue& Value);
 
-	void Inventory(const FInputActionValue& Value);
+	void OnInventory(const FInputActionValue& Value);
+
+	void OnAttack(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
@@ -80,12 +86,42 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 
+	/*Animation*/
+private:
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+		bool IsAttacking;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+		int32 CurrentCombo;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+		bool CanNextCombo;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+		bool IsComboInputOn;
+
+
+
+	UPROPERTY()
+		class URPGGameAnimInstance* AnimInstance;
+
+	UFUNCTION()
+		void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	/*Start Combo -> Set Property*/
+	void AttackStartComboState();
+	/*End Combo -> Init Property*/
+	void AttackEndComboState();
+
+	UFUNCTION(BlueprintCallable)
+	void EquipWeapon();
+
+	class AEquipItem* Weapon;
+
 public:
+	void Attack();
 
-	UFUNCTION(BlueprintCallable, Category = "Test")
-	void Test();
-
-	
+	bool GetIsAttacking();
 
 };
 
