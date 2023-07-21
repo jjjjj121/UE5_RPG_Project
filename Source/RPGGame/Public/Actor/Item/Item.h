@@ -12,6 +12,10 @@ class RPGGAME_API AItem : public AActor
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(EditAnywhere)
+		class UDataTable* ItemData;
+
 public:	
 	// Sets default values for this actor's properties
 	AItem();

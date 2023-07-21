@@ -2,7 +2,8 @@
 
 
 #include "Actor/Monster/MonsterSpawner.h"
-#include "Actor/Monster/Monster.h"
+#include "Actor/Monster/Monster_AI.h"
+#include "RPGGame/Structs.h"
 
 // Sets default values
 AMonsterSpawner::AMonsterSpawner()
@@ -10,13 +11,19 @@ AMonsterSpawner::AMonsterSpawner()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//static ConstructorHelpers::FObjectFinder<UDataTable> TableObject(TEXT("/Game/Data/NewDataTable.NewDataTable"));
+
+	//if (TableObject.Succeeded()) {
+	//	UE_LOG(LogTemp, Warning, TEXT("MONSTER DATA TABLE SUCCEED"));
+	//	MonsterTable = TableObject.Object;
+	//}
+
 }
 
 // Called when the game starts or when spawned
 void AMonsterSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-
 	SpawnUnit();
 	
 }
@@ -36,9 +43,9 @@ void AMonsterSpawner::SpawnUnit()
 	FVector SpawnLoaction = GetActorLocation();
 	SpawnLoaction.Z -= 90.0f;
 
-	AMonster* MonsterUnit = GetWorld()->SpawnActor<AMonster>(AMonster::StaticClass(), SpawnLoaction, rotator, SpawnParms);
+	AMonster_AI* MonsterUnit = GetWorld()->SpawnActor<AMonster_AI>(AMonster_AI::StaticClass(), SpawnLoaction, rotator, SpawnParms);
 
-	MonsterUnit->SetUnit(MonsterTable,MonsterName_Key);
+	MonsterUnit->SetUnit(MonsterTable, MonsterName_Key);
 }
 
 

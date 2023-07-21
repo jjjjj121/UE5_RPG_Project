@@ -75,5 +75,6 @@ public:
 
 public:
 	void SetUnit(UDataTable* MonsterTable, FName MonsterName_);
+	void DropItem();
 
 };

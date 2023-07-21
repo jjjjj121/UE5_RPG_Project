@@ -27,6 +27,7 @@ void AItem::Tick(float DeltaTime)
 
 void AItem::SpawnItem()
 {
+	UE_LOG(LogTemp, Warning, TEXT("SPAWN ITEM"));
 	//uint8 RandomSeed;
 	//RandomSeed = FMath::RandRange(0, 3);
 	//EItemType RandomType = static_cast<EItemType>(RandomSeed);

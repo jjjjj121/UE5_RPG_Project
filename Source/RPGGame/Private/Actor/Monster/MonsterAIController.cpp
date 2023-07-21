@@ -8,7 +8,6 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "RPGGame/RPGGameCharacter.h"
-
 #include "GameFramework/CharacterMovementComponent.h"
 
 //Black Board 에 해당 Key로 변수에 접근하기 위함 - C++ 과 Editor의 Blackboard 변수를 연결
@@ -16,10 +15,12 @@ const FName AMonsterAIController::Key_HomePos(TEXT("HomePos"));
 const FName AMonsterAIController::Key_Patrol(TEXT("PatrolPos"));
 const FName AMonsterAIController::Key_Target(TEXT("Target"));
 const FName AMonsterAIController::Key_CanSeePlayer(TEXT("CanSeePlayer"));
-const FName AMonsterAIController::Key_IsPlayerInMeleeRange(TEXT("IsPlayerInMeleeRange"));
+const FName AMonsterAIController::Key_IsAttacking(TEXT("IsAttacking"));
+const FName AMonsterAIController::Key_CanAttackRange(TEXT("CanAttackRange"));
 
 AMonsterAIController::AMonsterAIController(FObjectInitializer const& object_initializer)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER CONSTRUCTOR"));
 	//Behavior Tree Init
 	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BT_Object(TEXT("/Game/Data/BT_Monster.BT_Monster"));
 	if (BT_Object.Succeeded()) {
@@ -69,8 +70,22 @@ void AMonsterAIController::OnTargetDetected(AActor* Actor, FAIStimulus Stimulus)
 		//Target 감지 시 blackboard true로 업데이트
 		BlackBoard->SetValueAsBool(Key_CanSeePlayer, Stimulus.WasSuccessfullySensed());
 		BlackBoard->SetValueAsObject(Key_Target, Actor);
-		UE_LOG(LogTemp, Warning, TEXT("TARGET DETECTED"));
+		UE_LOG(LogTemp, Warning, TEXT("TARGET DETECTED "));
 	}
+	
+	if (!Actor) {
+		UE_LOG(LogTemp, Warning, TEXT("TARGET Out"));
+	}
+}
+
+void AMonsterAIController::EnableSight(bool Enable)
+{
+	GetPerceptionComponent()->SetSenseEnabled(SightConfig->StaticClass(), Enable);
+}
+
+void AMonsterAIController::SetKey_IsAttacking(bool IsAttacking)
+{
+	BlackBoard->SetValueAsBool(Key_IsAttacking, IsAttacking);
 }
 
 void AMonsterAIController::OnPossess(APawn* InPawn)
@@ -99,8 +114,10 @@ void AMonsterAIController::BeginPlay()
 	}
 	BT_Component->StartTree(*BTree);
 
+}
 
-
-	GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = 200.0f;;
+void AMonsterAIController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 
 }

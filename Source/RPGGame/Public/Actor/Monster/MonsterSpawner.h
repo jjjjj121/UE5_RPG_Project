@@ -14,10 +14,10 @@ class RPGGAME_API AMonsterSpawner : public AActor
 public:
 	//Data Table
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		class UDataTable* MonsterTable;
+	class UDataTable* MonsterTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FName MonsterName_Key;
+	FName MonsterName_Key;
 
 public:	
 	// Sets default values for this actor's properties

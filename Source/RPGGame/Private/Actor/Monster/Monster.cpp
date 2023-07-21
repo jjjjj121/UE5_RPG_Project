@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "Actor/Item/Item.h"
 #include "Actor/Monster/Monster.h"
 
 // Sets default values
 AMonster::AMonster()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -15,7 +15,7 @@ AMonster::AMonster()
 void AMonster::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -56,8 +56,8 @@ void AMonster::SetUnit(UDataTable* MonsterTable, FName MonsterName_)
 			MonsterID = MData->D_MonsterID;
 			MonsterName = MData->D_MonsterName;
 			Skill = MData->D_Skill;
-			ItemIcon = MData->ItemIcon;
-			ItemMesh = MData->ItemMesh;
+			ItemIcon = MData->MonsterIcon;
+			ItemMesh = MData->MonsterMesh;
 			RootArray = MData->RootArray;
 
 			UE_LOG(LogTemp, Warning, TEXT("SET UNIT : %s"), *MonsterName);
@@ -72,9 +72,29 @@ void AMonster::SetUnit(UDataTable* MonsterTable, FName MonsterName_)
 			Destroy();
 		}
 	}
+}
+
+void AMonster::DropItem()
+{
+	if (RootArray.Num()) {
+
+		uint8 RandomSeed;
+		RandomSeed = FMath::RandRange(0, 100);
+		//EItemType RandomType = static_cast<EItemType>(RandomSeed);
 
 
 
+		for (FRootArrayData RootData : RootArray) {
+			if (RootData.DropRate <= RandomSeed) {
+				TSubclassOf<AItem> ItemClass = RootData.RootItemclass;
+				AItem* RootItem = NewObject<AItem>(this, ItemClass->StaticClass());
+				
+				RootItem->SpawnItem();
+				
+
+			}
+		}
+	}
 
 }
 

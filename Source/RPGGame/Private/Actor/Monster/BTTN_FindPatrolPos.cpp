@@ -14,7 +14,7 @@ UBTTN_FindPatrolPos::UBTTN_FindPatrolPos(FObjectInitializer const& object_initia
 
 EBTNodeResult::Type UBTTN_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	//EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
+	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
 	auto Controller = Cast<AMonsterAIController>(OwnerComp.GetAIOwner());
 	auto ControllingPawn = Controller->GetPawn();

@@ -12,15 +12,15 @@ AEquipItem::AEquipItem()
 	static ConstructorHelpers::FObjectFinder<UDataTable> EquipTableObject(TEXT("/Game/Data/DT_EquipItem.DT_EquipItem"));
 	if (EquipTableObject.Succeeded()) {
 		UE_LOG(LogTemp, Warning, TEXT("DATA TABLE SUCCEED"));
-		EquipTable = EquipTableObject.Object;
+		ItemData = EquipTableObject.Object;
 	}
 
 }
 
 void AEquipItem::BeginPlay()
 {
-	if (EquipTable) {
-		TArray<FName> RowList = EquipTable->GetRowNames();
+	if (ItemData) {
+		TArray<FName> RowList = ItemData->GetRowNames();
 		FName RandomName = RowList[FMath::RandRange(0, RowList.Num() -1)];
 		InitProperty(RandomName);
 
@@ -31,9 +31,11 @@ void AEquipItem::BeginPlay()
 
 void AEquipItem::InitProperty(FName RowName)
 {
-	FEquipItemTable* EquipData = EquipTable->FindRow<FEquipItemTable>(RowName, FString(""));
+	FEquipItemTable* EquipData = ItemData->FindRow<FEquipItemTable>(RowName, FString(""));
 
 	if (EquipData) {
+		
+
 		UE_LOG(LogTemp, Warning, TEXT("INIT PROPERTY"));
 	}
 

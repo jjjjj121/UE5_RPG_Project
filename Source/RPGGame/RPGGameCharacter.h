@@ -100,9 +100,7 @@ private:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
 		bool IsComboInputOn;
 
-
-
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		class URPGGameAnimInstance* AnimInstance;
 
 	UFUNCTION()
@@ -120,8 +118,10 @@ private:
 
 public:
 	void Attack();
-
 	bool GetIsAttacking();
 
+
+	UFUNCTION(BlueprintCallable)
+	void TEST();
 };
 

@@ -6,16 +6,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/Vector.h"
 #include "RPGGameCharacter.h"
-#include "Actor/Item/AttackBehavior.h"
-#include "Actor/Item/AttackBehavior_Non.h"
+#include "Behavior/AttackBehavior.h"
+#include "Behavior/AttackBehavior_Non.h"
 
-URPGGameAnimInstance::URPGGameAnimInstance()
+URPGGameAnimInstance::URPGGameAnimInstance(FObjectInitializer const& object_initializer)
 {
 
-	SetBehavior(UAttackBehavior_Non::StaticClass());
-
-} 
-
+}
 void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
@@ -25,6 +22,7 @@ void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		UpdateIsPawnFalling();
 		UpdateWeapon();
 	}
+	
 }
 
 void URPGGameAnimInstance::NativeInitializeAnimation()
@@ -37,6 +35,8 @@ void URPGGameAnimInstance::NativeInitializeAnimation()
 	if(OwningCharacter){
 		MovementComponent = OwningCharacter->GetCharacterMovement();
 	}
+
+	SetBehavior(UAttackBehavior_Non::StaticClass());
 }
 
 
@@ -106,7 +106,11 @@ int32 URPGGameAnimInstance::GetMaxCombo()
 void URPGGameAnimInstance::SetBehavior(TSubclassOf<UAttackBehavior> Behavior)
 {
 	AttackBehavior = NewObject<UAttackBehavior>(this, Behavior, FName(TEXT("Behavior")));
-
+	if (AttackBehavior) {
+		auto asd = AttackBehavior->MaxCombo;
+		UE_LOG(LogTemp, Warning, TEXT("BEHAVIOR SUCCEED"));
+	}
 	AttackBehavior->ParentAnimInstance = this;
 
 }
+

@@ -1,0 +1,25 @@
+[
+	{
+		"Name": "Mutant",
+		"D_MonsterID": "000001",
+		"D_MonsterName": "Mutant",
+		"D_Level": 1,
+		"MonsterMesh": "/Script/Engine.SkeletalMesh'/Game/Asset/Monster/Mutant/Rootbone/Mutant.Mutant'",
+		"MonsterAnimInstance": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Asset/Monster/Mutant/Rootbone/Mutant_Skeleton_AnimBlueprint.Mutant_Skeleton_AnimBlueprint_C'",
+		"MonsterAIController": "/Script/CoreUObject.Class'/Script/RPGGame.MonsterAIController'",
+		"MonsterIcon": "/Script/Engine.Texture2D'/Game/Asset/Monster/Mutant/Mutant_diffuse.Mutant_diffuse'",
+		"D_MAXHP": 200,
+		"D_MAXMP": 0,
+		"D_Damage": 30,
+		"D_Defence": 15,
+		"D_Skill": 0,
+		"D_Experience": 0,
+		"RootArray": [
+			{
+				"RootItemclass": "/Script/CoreUObject.Class'/Script/RPGGame.EquipItem'",
+				"DropRate": 0.3
+			}
+		],
+		"MaxRootItemNum": 2
+	}
+]

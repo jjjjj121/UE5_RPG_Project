@@ -11,7 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "RPGGameAnimInstance.h"
 #include "Actor/Item/EquipItem.h"
-
+#include "Kismet/KismetSystemLibrary.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ARPGGameCharacter
@@ -87,8 +87,9 @@ void ARPGGameCharacter::BeginPlay()
 
 	/*Anim Instance Init*/
 	AnimInstance = Cast<URPGGameAnimInstance>(GetMesh()->GetAnimInstance());
-	AnimInstance->OnMontageEnded.AddDynamic(this, &ARPGGameCharacter::OnAttackMontageEnded);
 
+	AnimInstance->OnMontageEnded.AddDynamic(this, &ARPGGameCharacter::OnAttackMontageEnded);
+	
 	//OnNextAttack 델리게이트에 람다 함수식 추가 -> Broadcast시 호출
 	AnimInstance->OnNextAttack.AddLambda([this]()->void {
 		CanNextCombo = false;
@@ -123,7 +124,6 @@ bool ARPGGameCharacter::GetIsAttacking()
 {
 	return IsAttacking;
 }
-
 
 void ARPGGameCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
@@ -252,3 +252,8 @@ void ARPGGameCharacter::EquipWeapon()
 	//AnimInstance->SetBehavior();
 }
 
+void ARPGGameCharacter::TEST()
+{
+
+
+}

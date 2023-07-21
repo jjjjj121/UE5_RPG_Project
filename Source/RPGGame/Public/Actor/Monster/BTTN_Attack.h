@@ -24,6 +24,6 @@ protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 private:
-	class ARPGGameCharacter* ControllingPawn;
-	//bool IsAttacking = false;
+	class AMonster_AI* ControllingPawn;
+
 };

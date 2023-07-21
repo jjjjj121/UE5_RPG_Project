@@ -3,6 +3,7 @@
 #include "Engine/DataTable.h"
 #include "EnumHeader.h"
 #include "Public/MonsterData.h"
+#include "Animation/AnimInstance.h"
 #include "Structs.generated.h"
 
 
@@ -26,7 +27,7 @@ struct FEquipItemTable : public FTableRowBase {
 	GENERATED_USTRUCT_BODY()
 
 public:
-	//Monster ID Code
+	//Item ID Code
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FString D_ItemID;
 
@@ -131,12 +132,24 @@ public:
 		int32 D_Level;
 
 	//Mesh
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		USkeletalMesh* ItemMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		USkeletalMesh* MonsterMesh;
+
+	//Anim Instance
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class UAnimInstance> MonsterAnimInstance;
+
+	//AI Controller
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class AAIController> MonsterAIController;
+
+	//Attack Behavior
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<UAttackBehavior> Attack_Behavior;
 
 	//Icon
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		class UTexture2D* ItemIcon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UTexture2D* MonsterIcon;
 
 	//MAXHP
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -165,11 +178,10 @@ public:
 	//Drop Item List
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<FRootArrayData> RootArray;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UMonsterData* DataAsset;
-
-
+		int32 MaxRootItemNum;
+	
 
 	//+몬스터에 따른 애니메이션?
 	//+ AI설정

@@ -28,22 +28,22 @@ void AItemSpawner::Tick(float DeltaTime)
 
 void AItemSpawner::RandomSpawn(TArray<FRootArrayData> RootArray)
 {
-	if (RootArray.Num()) {
-		TArray<TSubclassOf<AItem>> ResultArray;
+	//if (RootArray.Num()) {
+	//	TArray<TSubclassOf<AItem>> ResultArray;
 
-		for (FRootArrayData RootItem : RootArray) {
-			float randomseed = FMath::RandRange(0.0f, 100.0f);
-			if (randomseed < RootItem.DropRate) {
-				ResultArray.Add(RootItem.RootItemclass);
-			}
-		}
+	//	for (FRootArrayData RootItem : RootArray) {
+	//		float randomseed = FMath::RandRange(0.0f, 100.0f);
+	//		if (randomseed < RootItem.DropRate) {
+	//			ResultArray.Add(RootItem.RootItemclass);
+	//		}
+	//	}
 
-		for (TSubclassOf<AItem> Itemclass : ResultArray) {
-			AItem* Item = Itemclass.GetDefaultObject();
+	//	for (TSubclassOf<AItem> Itemclass : ResultArray) {
+	//		AItem* Item = Itemclass.GetDefaultObject();
 
-			Item->SpawnItem();
-		}
-	}
+	//		Item->SpawnItem();
+	//	}
+	//}
 
 }
 

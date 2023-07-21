@@ -47,12 +47,14 @@ public:
 	static const FName Key_Patrol;
 	static const FName Key_Target;
 	static const FName Key_CanSeePlayer;
-	static const FName Key_IsPlayerInMeleeRange;
+	static const FName Key_IsAttacking;
+	static const FName Key_CanAttackRange;
 
 
 public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 	AMonsterAIController(FObjectInitializer const& object_initializer);
 
@@ -62,4 +64,9 @@ public:
 
 	UFUNCTION()
 	void OnTargetDetected(AActor* Actor, struct FAIStimulus const Stimulus);
+
+	void EnableSight(bool Enable);
+	void SetKey_IsAttacking(bool IsAttacking);
+
+
 };

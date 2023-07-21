@@ -46,7 +46,7 @@ private:
 	class UCharacterMovementComponent* MovementComponent;
 
 protected:
-	URPGGameAnimInstance();
+	URPGGameAnimInstance(FObjectInitializer const& object_initializer);
 
 public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
@@ -59,6 +59,7 @@ public:
 
 	//Attack Animation
 public:
+	UPROPERTY(EditAnywhere)
 	class UAttackBehavior* AttackBehavior;
 
 
@@ -73,6 +74,7 @@ public:
 	/*Get Montage Section Name*/
 	FName GetAttackMontageSectionName(int32 Section);
 
+	UFUNCTION()
 	int32 GetMaxCombo();
 private:
 	//Notify Function
@@ -85,4 +87,5 @@ private:
 
 public:
 	void SetBehavior(TSubclassOf<UAttackBehavior> Behavior);
+
 };

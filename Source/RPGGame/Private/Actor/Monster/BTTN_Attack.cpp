@@ -3,19 +3,20 @@
 
 #include "Actor/Monster/BTTN_Attack.h"
 #include "Actor/Monster/MonsterAIController.h"
-#include "RPGGame/RPGGameCharacter.h"
+#include "Actor/Monster/Monster_AI.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 UBTTN_Attack::UBTTN_Attack(FObjectInitializer const& object_initializer)
 {
 	bNotifyTick = true;	//tick 활성화
-	//IsAttacking = false;
 	NodeName = TEXT("Attack");
 }
 
 EBTNodeResult::Type UBTTN_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 	auto Controller = Cast<AMonsterAIController>(OwnerComp.GetAIOwner());
-	ControllingPawn = Cast<ARPGGameCharacter>(Controller->GetPawn());
+	ControllingPawn = Cast<AMonster_AI>(Controller->GetPawn());
 
 	if (ControllingPawn == nullptr) {
 		UE_LOG(LogTemp, Warning, TEXT("ControllingPawn Init Failed : Attack_Task"));
@@ -31,10 +32,14 @@ EBTNodeResult::Type UBTTN_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp,
 //공격이 끝났는지 체크
 void UBTTN_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 	if (ControllingPawn) {
-		if (ControllingPawn->GetIsAttacking()) {
-			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-			UE_LOG(LogTemp, Warning, TEXT("MONSTER ATTACK FINISHED"));
+		if (!ControllingPawn->GetIsAttacking()) {
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+				UE_LOG(LogTemp, Warning, TEXT("MONSTER ATTACK FINISHED"));
+		}
+		else {
+			ControllingPawn->Attack();
 		}
 	}
 
