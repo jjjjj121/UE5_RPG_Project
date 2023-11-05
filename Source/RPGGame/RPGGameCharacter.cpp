@@ -8,10 +8,22 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
+
 #include "EnhancedInputSubsystems.h"
+
 #include "RPGGameAnimInstance.h"
-#include "Actor/Item/EquipItem.h"
+#include "RPGGame/RPGGamePlayerState.h"
+#include "RPGGame/RPGGameHUD.h"
+#include "Engine/DamageEvents.h"
+
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "DamageType/DamageType_Base.h"
+
+#include "Interface/InteractionInterface.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // ARPGGameCharacter
@@ -52,29 +64,19 @@ ARPGGameCharacter::ARPGGameCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	/*맵핑 설정 추가*/
-	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Interaction(TEXT("/Game/ThirdPerson/Input/Actions/IA_Interaction.IA_Interaction"));
-	if (IA_Interaction.Succeeded()) {
-		InteractAction = IA_Interaction.Object;
-	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Inventory(TEXT("/Game/ThirdPerson/Input/Actions/IA_Inventory.IA_Inventory"));
-	if (IA_Interaction.Succeeded()) {
-		InventoryAction = IA_Inventory.Object;
-	}
-	
-	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Attack(TEXT("/Game/ThirdPerson/Input/Actions/IA_Attack.IA_Attack"));
-	if (IA_Attack.Succeeded()) {
-		AttackAction = IA_Attack.Object;
-	}
-
+	//Init Attack Combo
 	AttackEndComboState();
+
 }
 
 void ARPGGameCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	//Player Tag 추가
+	Tags.Add(FName(TEXT("Player")));
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -83,6 +85,9 @@ void ARPGGameCharacter::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
+
+		//HUD
+		HUD = Cast<ARPGGameHUD>(PlayerController->GetHUD());
 	}
 
 	/*Anim Instance Init*/
@@ -96,10 +101,100 @@ void ARPGGameCharacter::BeginPlay()
 		if (IsComboInputOn) {
 			AttackStartComboState();
 			AnimInstance->JumpToAttackMontageSection(CurrentCombo);	//다음 콤보 Montage로 switching
-			UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
+			//UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
 		}
 		});
 
+}
+
+void ARPGGameCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	FVector StartPoint = Camera->GetCameraLocation();
+	FVector EndPoint = (UKismetMathLibrary::GetForwardVector(Camera->GetCameraRotation()) * 500.f) + StartPoint;
+	
+	const FName TraceTag("DebugTraceTag");
+
+	GetWorld()->DebugDrawTraceTag = TraceTag;
+
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.TraceTag = TraceTag;
+	CollisionParams.AddIgnoredActor(this);
+
+	FHitResult HitResult;
+
+	HUD->bRootItem = false;
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECollisionChannel::ECC_Visibility, CollisionParams)) {
+		IInteractionInterface* InteractionActor = Cast<IInteractionInterface>(HitResult.GetActor());
+		if (InteractionActor && InteractionActor->IsAvailableInteraction()) {
+			HUD->SetRootItemList(InteractionActor->GetRootItemList());
+			HUD->bRootItem = true;
+		}
+	}
+	HUD->CheckRoot();
+	
+
+	//DrawDebugLine(GetWorld(), StartPoint, EndPoint, IsHit ? FColor(255, 0, 0) : FColor(0, 255, 0),false, 1, 0, 0.5f);
+
+}
+
+float ARPGGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	UE_LOG(LogClass, Warning, TEXT("Damage : %f"), Damage);
+
+	ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState());
+	if (MyPlayerState) {
+		MyPlayerState->UpdateHP(Damage);
+
+		if (MyPlayerState->CurHP <= 0) {
+			IsDead = true;
+		}
+	}
+
+	FRotator Delta_A = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), DamageCauser->GetActorLocation());
+	FRotator Delta_B = GetActorRotation();
+	FRotator Delta_Rotator = UKismetMathLibrary::NormalizedDeltaRotator(Delta_A, Delta_B);
+
+	int32 Direction_Index = CalculateDirectionIndex(Delta_Rotator.Yaw);
+
+	if (!IsDead) {
+		
+		// If you need the DamageType object like in blueprint, this is how you do it:
+		UDamageType const* const DamageTypeCDO = DamageEvent.DamageTypeClass ? DamageEvent.DamageTypeClass->GetDefaultObject<UDamageType>() : GetDefault<UDamageType>();
+
+		/*Check Damage Type*/
+		const UDamageType_Base* MyDamageType = Cast<UDamageType_Base>(DamageTypeCDO);
+		UAnimMontage* HitReact_Montage = nullptr;
+		if (MyDamageType) {
+			/*Damage Type : Charged Attack*/
+			if (MyDamageType->IsCharged) {
+				HitReact_Montage = Charged_Hit_Reaction_Montages.FindRef(Direction_Index);
+				//UE_LOG(LogTemp, Warning, TEXT("CHARGED"));
+			}
+			/*Damage Type : Basic Attack*/
+			else {
+				HitReact_Montage = Basic_Hit_Reaction_Montages.FindRef(Direction_Index);
+				//UE_LOG(LogTemp, Warning, TEXT("BASIC"));
+			}
+		}
+		
+		AnimInstance->Montage_Play(HitReact_Montage);
+
+		ReceivingDamage(MyPlayerState->MaxHP, MyPlayerState->CurHP);
+	}
+	/*Player Dead*/
+	else {
+		DoDeath(Direction_Index);
+	}
+
+	
+
+	return Damage;
 }
 
 void ARPGGameCharacter::Attack()
@@ -109,7 +204,6 @@ void ARPGGameCharacter::Attack()
 		//다음 콤보가 있는 경우
 		if (CanNextCombo) {
 			IsComboInputOn = true;
-			UE_LOG(LogTemp, Warning, TEXT("IsComboInputOn"));
 		}
 	}
 	//첫 Attack 콤보인 경우
@@ -124,6 +218,47 @@ bool ARPGGameCharacter::GetIsAttacking()
 {
 	return IsAttacking;
 }
+
+int32 ARPGGameCharacter::CalculateDirectionIndex(float Direction)
+{
+	/*Hit Front*/
+	if (Direction >= -45.f && Direction <= 45.f) {
+		return 1;
+	}
+	/*Hit Right*/
+	else if (Direction > 45.f && Direction <= 135.f) {
+		return 2;
+	}
+	/*Hit Left*/
+	else if (Direction >= -135.f && Direction < -45.f) {
+		return 3;
+	}
+	/*Hit Back*/
+	else if ((Direction >= -180.f && Direction < -135.f) || (Direction >= 135.f && Direction < 180.f)) {
+		return 4;
+	}
+
+	/*Error*/
+	return -1;
+}
+
+void ARPGGameCharacter::DoDeath(int32 DirectionIndex)
+{
+	AnimInstance->Montage_Play(Death_Reaction_Montages.FindRef(DirectionIndex));
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+float ARPGGameCharacter::GetDamage()
+{
+	ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState());
+	if (MyPlayerState) {
+		return MyPlayerState->Damage;
+	}
+	
+	return -1.f;
+}
+
 
 void ARPGGameCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
@@ -162,15 +297,6 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::Look);
-
-		//Interact
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnInteract);
-
-		//Inventory
-		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnInventory);
-
-		//Attack
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnAttack);
 	}
 
 }
@@ -180,21 +306,24 @@ void ARPGGameCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	if (Controller != nullptr){
+		if (ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState())) {
+			if (!IsDead) {
+				// find out which way is forward
+				const FRotator Rotation = Controller->GetControlRotation();
+				const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+				// get forward vector
+				const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+				// get right vector 
+				const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+				// add movement 
+				AddMovementInput(ForwardDirection, MovementVector.Y);
+				AddMovementInput(RightDirection, MovementVector.X);
+			}
+		}
 	}
 }
 
@@ -211,29 +340,6 @@ void ARPGGameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ARPGGameCharacter::OnInteract(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Interact In"));
-	if (Value.Get<bool>()) {
-		UE_LOG(LogTemp, Warning, TEXT("Interact On"));
-	}
-	
-}
-
-void ARPGGameCharacter::OnInventory(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Inventory In"));
-	if (Value.Get<bool>()) {
-		UE_LOG(LogTemp, Warning, TEXT("Inventory On"));
-	}
-}
-
-void ARPGGameCharacter::OnAttack(const FInputActionValue& Value)
-{
-	this->Attack();
-}
-
-
 void ARPGGameCharacter::EquipWeapon()
 {
 	UWorld* world = GetWorld();
@@ -244,16 +350,10 @@ void ARPGGameCharacter::EquipWeapon()
 		FRotator rotator;
 		FVector spawnlocation = GetMesh()->GetSocketLocation(FName(TEXT("Weapon")));
 		
-		Weapon = Cast<AEquipItem>(world->SpawnActor<AActor>(AEquipItem::StaticClass(), spawnlocation, rotator, SpawnPrams));
-
-		
+		//웨폰 추가
+		//Weapon = Cast<AEquipItem>(world->SpawnActor<AActor>(AEquipItem::StaticClass(), spawnlocation, rotator, SpawnPrams));
 
 	}
 	//AnimInstance->SetBehavior();
 }
 
-void ARPGGameCharacter::TEST()
-{
-
-
-}

@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "EnumHeader.h"
+#include "PlayerDefinition.h"
 #include "RPGGameCharacter.generated.h"
 
 
@@ -38,46 +39,41 @@ class ARPGGameCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
-	/** Interation Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* InteractAction;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class ARPGGameHUD* HUD;
 
-	/** Inventory Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* InventoryAction;
-
-	/** Attack Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* AttackAction;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data", Meta = (AllowprivateAccess = true))
 	EWeaponType WeaponEnum;
 
+	AActor* RootingActor;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool IsDead = false;
+
 public:
 	ARPGGameCharacter();
-	
 
 protected:
-
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 	
-	void OnInteract(const FInputActionValue& Value);
-
-	void OnInventory(const FInputActionValue& Value);
-
-	void OnAttack(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
+
+	virtual void Tick(float DeltaTime) override;
+
+	//Apply Damage
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 public:
 	/** Returns CameraBoom subobject **/
@@ -85,6 +81,7 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+#pragma region Attack & React
 
 	/*Animation*/
 private:
@@ -102,7 +99,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		class URPGGameAnimInstance* AnimInstance;
-
+	
 	UFUNCTION()
 		void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
@@ -120,8 +117,30 @@ public:
 	void Attack();
 	bool GetIsAttacking();
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void UpdateHP(float MaxHP, float CurHP);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReceivingDamage(float MaxHP, float CurHP);
+
+
+	int32 CalculateDirectionIndex(float Direction);
+
+	UPROPERTY(EditAnywhere)
+		TMap<int32, UAnimMontage*> Basic_Hit_Reaction_Montages;
+
+	UPROPERTY(EditAnywhere)
+		TMap<int32, UAnimMontage*> Charged_Hit_Reaction_Montages;
+
+	UPROPERTY(EditAnywhere)
+		TMap<int32, UAnimMontage*> Death_Reaction_Montages;
 
 	UFUNCTION(BlueprintCallable)
-	void TEST();
+	void DoDeath(int32 DirectionIndex);
+
+	float GetDamage();
+
+#pragma endregion
+
 };
 

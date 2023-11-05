@@ -3,7 +3,20 @@
 
 #include "MonsterData.h"
 
-float UMonsterData::TestFunc()
+
+void UMonsterData::PlayAttackMontage()
 {
-	return Test * 2;
+	//UE_LOG(LogTemp, Warning, TEXT("Plz Override PlayAttackMontage()"));
+	ParentAnimInstance->Montage_Play(AttackMontage, 1.0f);
+}
+
+void UMonsterData::JumpToAttackMontageSection(int32 NewSection)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Plz Override JumpToAttackMontageSection()"));
+	ParentAnimInstance->Montage_SetNextSection(GetAttackMontageSectionName(NewSection - 1), GetAttackMontageSectionName(NewSection), AttackMontage);
+}
+
+FName UMonsterData::GetAttackMontageSectionName(int32 Section)
+{
+	return FName(*FString::Printf(TEXT("Attack%d"), Section));
 }

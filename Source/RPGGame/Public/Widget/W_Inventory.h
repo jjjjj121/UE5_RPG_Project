@@ -3,14 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "RPGUserWidgetBase.h"
+#include "RPGGame/Structs.h"
 #include "W_Inventory.generated.h"
 
 /**
  *
  */
 UCLASS()
-class RPGGAME_API UW_Inventory : public UUserWidget
+class RPGGAME_API UW_Inventory : public URPGUserWidgetBase
 {
 	GENERATED_BODY()
 
@@ -21,6 +22,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	TSubclassOf<UUserWidget> SlotWidgetclass;
 
+	TMap<int32, class UW_InventorySlot*> InventorySlotList;
+
 public:
 	int32 CurRow = 0;
 	int32 CurColumn = 0;
@@ -30,5 +33,5 @@ public:
 
 public:
 	void InitInventory();
-
+	void AddItem(FItemData ItemData);
 };

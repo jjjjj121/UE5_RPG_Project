@@ -6,6 +6,18 @@
 #include "Animation/AnimInstance.h"
 #include "Structs.generated.h"
 
+USTRUCT(BlueprintType)
+struct FWidgetData : public FTableRowBase {
+
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FName WidgetName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<UUserWidget> WidgetClass;
+};
 
 USTRUCT(BlueprintType)
 struct FRootArrayData {
@@ -13,16 +25,46 @@ struct FRootArrayData {
 	GENERATED_USTRUCT_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<class AItem> RootItemclass;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//	TSubclassOf<class AItem> RootItemclass;
 
+	/*다이스 돌릴 때마다 몇퍼센트 확률로 드랍확정 될 것인지*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float DropRate;
+
+	/*개별 아이템 수량 관련 - 몇 번 돌릴것인지*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32 RollDice = 1;
+
+	int32 ItemNum = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FMonsterAnim {
+
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		int32 MaxCombo;
+
+	UPROPERTY(EditAnywhere)
+		UAnimMontage* Basic_Hit_Reaction_Montages;
+
+	UPROPERTY(EditAnywhere)
+		UAnimMontage* Charged_Hit_Reaction_Montages;
+
+	UPROPERTY(EditAnywhere)
+		UAnimMontage* Death_Reaction_Montages;
 };
 
 
+
 USTRUCT()
-struct FEquipItemTable : public FTableRowBase {
+struct FItemData : public FTableRowBase {
 
 	GENERATED_USTRUCT_BODY()
 
@@ -39,17 +81,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		EItemGrade D_ItemGrade;
 
-	//ItemType
+	//Category
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		EItemType D_ItemType;
+		EItemCategoryType D_Category;
 
 	//Level 제한
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 D_Levellimit;
 
 	//class
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		TSubclassOf<class AItem> ItemClass;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	//	TSubclassOf<class AItem> ItemClass;
 
 	//Mesh
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -146,6 +188,10 @@ public:
 	//Attack Behavior
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<UAttackBehavior> Attack_Behavior;
+
+	//TEST PROPERTY (Attack_Behavior 안에 React 애니메이션을 테이블에서 설정해주고 싶음)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FMonsterAnim MonsterAnimation;
 
 	//Icon
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

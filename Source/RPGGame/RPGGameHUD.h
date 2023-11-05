@@ -18,7 +18,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	TSubclassOf<UUserWidget> HUDWidgetclass;
 	
+	UPROPERTY(BlueprintReadOnly, Category = "Widget")
+	class UW_HUD* HUDWidget;
+
+	class ARPGGameCharacter* Player;
+
+	class ARPGGamePlayerController* Controller;
+
 public:
 	void BeginPlay() override;
+	void CheckRoot();
+	void OpenRootItemList();
+	void SelectButton(int32 ListIndex);
 
+	void SetRootItemList(TArray<class AItem*> NewRootItems);
+public:
+	bool bRootItem;
 };

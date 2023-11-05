@@ -8,6 +8,7 @@
 #include "RPGGameCharacter.h"
 #include "Behavior/AttackBehavior.h"
 #include "Behavior/AttackBehavior_Non.h"
+#include "Kismet/KismetMathLibrary.h"
 
 URPGGameAnimInstance::URPGGameAnimInstance(FObjectInitializer const& object_initializer)
 {
@@ -21,6 +22,7 @@ void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		UpdateAnimProperty();
 		UpdateIsPawnFalling();
 		UpdateWeapon();
+		UpdateYawPitch();
 	}
 	
 }
@@ -34,6 +36,13 @@ void URPGGameAnimInstance::NativeInitializeAnimation()
 	OwningCharacter = Cast<ARPGGameCharacter>(GetOwningActor());
 	if(OwningCharacter){
 		MovementComponent = OwningCharacter->GetCharacterMovement();
+
+		FRotator Delta_A = OwningCharacter->GetControlRotation();
+		FRotator Delta_B = OwningCharacter->GetActorRotation();
+		FRotator Delta_Rotator = UKismetMathLibrary::NormalizedDeltaRotator(Delta_A, Delta_B);
+
+		PitchAnim = Delta_Rotator.Pitch;
+		YawAnim = Delta_Rotator.Yaw;
 	}
 
 	SetBehavior(UAttackBehavior_Non::StaticClass());
@@ -56,6 +65,7 @@ void URPGGameAnimInstance::UpdateAnimProperty()
 	else {
 		ShouldMove = false;
 	}
+
 }
 
 void URPGGameAnimInstance::UpdateIsPawnFalling()
@@ -66,6 +76,22 @@ void URPGGameAnimInstance::UpdateIsPawnFalling()
 void URPGGameAnimInstance::UpdateWeapon()
 {
 	this->WeaponEnum = OwningCharacter->WeaponEnum;
+
+}
+
+void URPGGameAnimInstance::UpdateYawPitch()
+{
+
+	FRotator Delta_A = OwningCharacter->GetControlRotation();
+	FRotator Delta_B = OwningCharacter->GetActorRotation();
+	FRotator Target_Rotator = UKismetMathLibrary::NormalizedDeltaRotator(Delta_A, Delta_B);
+
+	FRotator Cur_Rotator = UKismetMathLibrary::MakeRotator(0.f, YawAnim, PitchAnim);
+
+	FRotator Result_Rotator = FMath::RInterpTo(Cur_Rotator, Target_Rotator, 1.f, 0.0f);
+
+	PitchAnim = Result_Rotator.Pitch;
+	YawAnim = Result_Rotator.Yaw;
 
 }
 

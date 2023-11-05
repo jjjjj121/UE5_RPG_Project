@@ -30,6 +30,12 @@ private:
 	FVector Velocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
+		float PitchAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
+		float YawAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
 	bool ShouldMove = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
@@ -56,6 +62,7 @@ public:
 	void UpdateAnimProperty();
 	void UpdateIsPawnFalling();
 	void UpdateWeapon();
+	void UpdateYawPitch();
 
 	//Attack Animation
 public:

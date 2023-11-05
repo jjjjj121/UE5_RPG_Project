@@ -12,13 +12,15 @@
 
 //Item
 UENUM(BlueprintType)
-enum class EItemType : uint8
+enum class EItemCategoryType : uint8
 {
-	Consumable		UMETA(DisplayName = "Consumable"),	//소비 아이템
-	Equip			UMETA(DisplayName = "Equip"),		//장비 아이템
-	Jewel			UMETA(DisplayName = "Jewel"),		//보석 아이템
-	Material		UMETA(DisplayName = "Material"),	//재료 아이템
-
+	MELEEWEAPONS,	//근접 무기
+	RANGEWEAPONS,	//원거리 무기
+	SHIELDS,		//방패
+	MATERIAL,		//재료
+	CONSUMABLE,		//소비
+	SPECIAL,		//특별
+	ETC,			//기타 등등
 };
 
 UENUM(BlueprintType)

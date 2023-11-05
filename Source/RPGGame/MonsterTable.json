@@ -7,8 +7,17 @@
 		"MonsterMesh": "/Script/Engine.SkeletalMesh'/Game/Asset/Monster/Mutant/Rootbone/Mutant.Mutant'",
 		"MonsterAnimInstance": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Asset/Monster/Mutant/Rootbone/Mutant_Skeleton_AnimBlueprint.Mutant_Skeleton_AnimBlueprint_C'",
 		"MonsterAIController": "/Script/CoreUObject.Class'/Script/RPGGame.MonsterAIController'",
+		"Attack_Behavior": "None",
+		"MonsterAnimation":
+		{
+			"AttackMontage": "/Script/Engine.AnimMontage'/Game/Asset/Monster/Mutant/Rootbone/Animation/Montage/Mutant_Swiping_Montage.Mutant_Swiping_Montage'",
+			"MaxCombo": 0,
+			"Basic_Hit_Reaction_Montages": "/Script/Engine.AnimMontage'/Game/Asset/Monster/Mutant/Rootbone/Animation/Montage/SmallReaction_Montage.SmallReaction_Montage'",
+			"Charged_Hit_Reaction_Montages": "/Script/Engine.AnimMontage'/Game/Asset/Monster/Mutant/Rootbone/Animation/Montage/LargeReaction_Montage.LargeReaction_Montage'",
+			"Death_Reaction_Montages": "/Script/Engine.AnimMontage'/Game/Asset/Monster/Mutant/Rootbone/Animation/Montage/DeathReaction_Montage.DeathReaction_Montage'"
+		},
 		"MonsterIcon": "/Script/Engine.Texture2D'/Game/Asset/Monster/Mutant/Mutant_diffuse.Mutant_diffuse'",
-		"D_MAXHP": 200,
+		"D_MAXHP": 20,
 		"D_MAXMP": 0,
 		"D_Damage": 30,
 		"D_Defence": 15,
@@ -21,5 +30,37 @@
 			}
 		],
 		"MaxRootItemNum": 2
+	},
+	{
+		"Name": "Warrok",
+		"D_MonsterID": "000002",
+		"D_MonsterName": "Warrok",
+		"D_Level": 2,
+		"MonsterMesh": "/Script/Engine.SkeletalMesh'/Game/Asset/Monster/Warrok/Warrok.Warrok'",
+		"MonsterAnimInstance": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Asset/Monster/Warrok/Warrok_Skeleton_AnimBlueprint.Warrok_Skeleton_AnimBlueprint_C'",
+		"MonsterAIController": "/Script/CoreUObject.Class'/Script/RPGGame.MonsterAIController'",
+		"Attack_Behavior": "None",
+		"MonsterAnimation":
+		{
+			"AttackMontage": "None",
+			"MaxCombo": 0,
+			"Basic_Hit_Reaction_Montages": "None",
+			"Charged_Hit_Reaction_Montages": "None",
+			"Death_Reaction_Montages": "None"
+		},
+		"MonsterIcon": "/Script/Engine.Texture2D'/Game/Asset/Monster/Warrok/bear_diffuse.bear_diffuse'",
+		"D_MAXHP": 300,
+		"D_MAXMP": 0,
+		"D_Damage": 30,
+		"D_Defence": 30,
+		"D_Skill": 0,
+		"D_Experience": 0,
+		"RootArray": [
+			{
+				"RootItemclass": "/Script/CoreUObject.Class'/Script/RPGGame.EquipItem'",
+				"DropRate": 1
+			}
+		],
+		"MaxRootItemNum": 1
 	}
 ]
