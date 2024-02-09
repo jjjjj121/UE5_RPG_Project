@@ -1,0 +1,56 @@
+[
+	{
+		"Name": "000001",
+		"ItemDef": "/Script/Engine.BlueprintGeneratedClass'/Game/BP/Item/Consumable/ID_TestItem.ID_TestItem_C'",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "000002",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "000003",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "000004",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "000005",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "100001",
+		"ItemDef": "/Script/Engine.BlueprintGeneratedClass'/Game/BP/Item/Equipment/TwoHandSword/ID_TwoHandSword.ID_TwoHandSword_C'",
+		"EquipDef": "/Script/Engine.BlueprintGeneratedClass'/Game/BP/Item/Equipment/TwoHandSword/ED_TwoHandSword.ED_TwoHandSword_C'",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "100002",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "100003",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	},
+	{
+		"Name": "100004",
+		"ItemDef": "None",
+		"EquipDef": "None",
+		"AnimationData": "None"
+	}
+]

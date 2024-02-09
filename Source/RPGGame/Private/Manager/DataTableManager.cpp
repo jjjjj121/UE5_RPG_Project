@@ -3,11 +3,14 @@
 
 #include "Manager/DataTableManager.h"
 
-FItemData* UDataTableManager::GetItemData(FString ItemDataID)
+FItemTable* UDataTableManager::GetItemData(FString ItemDataID)
 {
-	const FString ContextStr = TEXT("ItemDataTable");
+	if (ensure(ItemDataTable) == false)
+		return nullptr;
 
-	FItemData* ItemData = ItemDataTable->FindRow<FItemData>(*ItemDataID, ContextStr);
+	const FString ContextStr = TEXT("ItemDataTable");
+	
+	FItemTable* ItemData = ItemDataTable->FindRow<FItemTable>(*ItemDataID, ContextStr);
 
 	if (ensureMsgf(ItemData, TEXT("[UDataTableManager::GetItemData] Non Item Data"))) {
 		return ItemData;

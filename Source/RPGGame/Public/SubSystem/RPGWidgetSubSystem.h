@@ -34,7 +34,7 @@ public:
 		URPGUserWidgetBase* SpawnRPGWidget(FName WidgetName);
 
 	UFUNCTION(BlueprintCallable, Meta = (WorldContext = "WorldContextObject"), Category = "Widget")
-		URPGUserWidgetBase* PushWidget(FName WidgetName, EWidgetLayoutType LayoutType);
+		URPGUserWidgetBase* PushWidget(FName WidgetName, EWidgetLayoutType LayoutType, EWidgetAnchorType AnchorType = EWidgetAnchorType::None);
 
 	UFUNCTION(BlueprintCallable, Meta = (WorldContext = "WorldContextObject"), Category = "Widget")
 		URPGUserWidgetBase* PopWidget(FName WidgetName, EWidgetLayoutType LayoutType);
@@ -46,12 +46,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Widget")
 		void ExecuteWidgetSingle(FName WidgetName, FName FunctionName, FWidgetParam WidgetParam);
 
-
-
-
-
 	UFUNCTION(BlueprintCallable, Category = "Widget|Option")
 		void VisibilityLayout(EWidgetLayoutType LayoutType, ESlateVisibility Visibility);
+
+	UFUNCTION(BlueprintCallable, Category = "Widget|Option")
+		void SetWidgetPosition(FName WidgetName, EWidgetLayoutType LayoutType, FVector2D Location);
 
 private:
 	void CreateWidgetLayout();
@@ -68,11 +67,18 @@ private:
 #pragma region Push Widget Queue
 private:
 	struct FPushWidgetQueue {
-		FPushWidgetQueue(FName _WidgetName, EWidgetLayoutType _LayoutType) : WidgetName(_WidgetName), LayoutType(_LayoutType) {}
+		FPushWidgetQueue(FName _WidgetName, EWidgetLayoutType _LayoutType, EWidgetAnchorType _AnchorType) : WidgetName(_WidgetName), LayoutType(_LayoutType), AnchorType(_AnchorType) {}
+
+		/*AnchorType 기입 안하는경우 none으로 초기화*/
+		FPushWidgetQueue(FName _WidgetName, EWidgetLayoutType _LayoutType) : WidgetName(_WidgetName), LayoutType(_LayoutType)
+		{
+			AnchorType = EWidgetAnchorType::None;
+		}
 
 	public:
 		FName WidgetName;
 		EWidgetLayoutType LayoutType;
+		EWidgetAnchorType AnchorType;
 
 	public:
 		/*Remove 함수 사용을 위해 == 를 재정의할 필요가 있음*/

@@ -8,7 +8,7 @@
 UAttackBehavior_Non::UAttackBehavior_Non()
 {
 	//Montage 가져오기
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Attack_Montage(TEXT("/Game/Asset/Warrior/RootBone/Non_Animation/Montage/AM_Non_Attack.AM_Non_Attack"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Attack_Montage(TEXT("/Game/AdvancedLocomotionV4/CharacterAssets/MannequinSkeleton/Animation/Non_Animation/Montage/AM_Non_Attack.AM_Non_Attack"));
 	if (Attack_Montage.Succeeded()) {
 		AttackMontage = Attack_Montage.Object;
 		UE_LOG(LogTemp, Warning, TEXT("SET MONTAGE SUCCEEDED"));

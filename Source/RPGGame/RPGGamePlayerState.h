@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "RPGGame/Structs.h"
 #include "RPGGamePlayerState.generated.h"
 
 /**
@@ -17,19 +18,7 @@ class RPGGAME_API ARPGGamePlayerState : public APlayerState
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float MaxHP = 100;
-
-	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float MaxMP;
-
-	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float CurHP = 100;
-
-	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float CurMP;
-
-	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float Damage = 10;
+		FRPGPlayerState State;
 
 public:
 	void UpdateHP(float TakeDamage);

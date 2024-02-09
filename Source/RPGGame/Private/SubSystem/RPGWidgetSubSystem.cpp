@@ -40,15 +40,15 @@ URPGUserWidgetBase* URPGWidgetSubSystem::SpawnRPGWidget(FName WidgetName)
 		return nullptr;
 	}
 
-	return CreateWidget<URPGUserWidgetBase>(GetGameInstance(), WidgetClass);
+	return CreateWidget<URPGUserWidgetBase>(GetWorld(), WidgetClass);
 }
 
-URPGUserWidgetBase* URPGWidgetSubSystem::PushWidget(FName WidgetName, EWidgetLayoutType LayoutType)
+URPGUserWidgetBase* URPGWidgetSubSystem::PushWidget(FName WidgetName, EWidgetLayoutType LayoutType, EWidgetAnchorType AnchorType)
 {
 	
 	if (bCreatedWidgetLayout == false) {
 		/*Layout 생성 전에 Push될 경우*/
-		PushWidgets.Add(FPushWidgetQueue(WidgetName, LayoutType));
+		PushWidgets.Add(FPushWidgetQueue(WidgetName, LayoutType, AnchorType));
 
 		return nullptr;
 	}
@@ -59,7 +59,7 @@ URPGUserWidgetBase* URPGWidgetSubSystem::PushWidget(FName WidgetName, EWidgetLay
 	}
 
 	URPGUserWidgetBase* NewWidget = SpawnRPGWidget(WidgetName);
-	if (ensureMsgf(AddWidgetClass, TEXT("[RPGWidgetSubSystem::PushWidget] Not Spawn Widget")) == false) {
+	if (ensureMsgf(NewWidget, TEXT("[RPGWidgetSubSystem::PushWidget] Not Spawn Widget")) == false) {
 		return nullptr;
 	}
 
@@ -73,25 +73,27 @@ URPGUserWidgetBase* URPGWidgetSubSystem::PushWidget(FName WidgetName, EWidgetLay
 
 	if (UCanvasPanelSlot* CPSlot = Cast<UCanvasPanelSlot>(NewWidget->Slot))
 	{
-		//CPSlot->SetAnchors(FAnchors(0.5f, 0.5f));
-		//switch (AnchorType)
-		//{
-		//case EWidgetAnchorType::None:
-		//{
-		//	break;
-		//}
-		//case EWidgetAnchorType::Center:
-		//{
-		//	CPSlot->SetAnchors(FAnchors(0.5f, 0.5f));
-		//	break;
-		//}
-		//case EWidgetAnchorType::Fill:
-		//{
-		//	CPSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-		//	CPSlot->SetOffsets(FMargin(0.f));
-		//	break;
-		//}
-		//}
+		switch (AnchorType)
+		{
+		case EWidgetAnchorType::None:
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s : None"), *WidgetName.ToString());
+			break;
+		}
+		case EWidgetAnchorType::Center:
+		{
+			CPSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+			UE_LOG(LogTemp, Warning, TEXT("%s : Center"), *WidgetName.ToString());
+			break;
+		}
+		case EWidgetAnchorType::Fill:
+		{
+			CPSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+			CPSlot->SetOffsets(FMargin(0.f));
+			UE_LOG(LogTemp, Warning, TEXT("%s : Fill"), *WidgetName.ToString());
+			break;
+		}
+		}
 	}
 
 	return NewWidget;
@@ -106,8 +108,12 @@ URPGUserWidgetBase* URPGWidgetSubSystem::PopWidget(FName WidgetName, EWidgetLayo
 	}
 
 	URPGUserWidgetBase* Cast_FindWidget = GetWidgetWithLayoutType(LayoutType, WidgetName);
-	if (ensureMsgf(Cast_FindWidget, TEXT("[URPGWidgetSubSystem::PopWidget] Not Created Widget")) == false)
+	if (Cast_FindWidget == nullptr) {
 		return nullptr;
+	}
+
+	/*if (ensureMsgf(Cast_FindWidget, TEXT("[URPGWidgetSubSystem::PopWidget] Not Created Widget")) == false)
+		return nullptr;*/
 
 	Cast_FindWidget->RemoveFromParent();
 
@@ -131,9 +137,13 @@ URPGUserWidgetBase* URPGWidgetSubSystem::GetWidgetWithLayoutType(EWidgetLayoutTy
 		return ChildWidget->GetClass() == WidgetClass;
 		});
 
-	if (ensureMsgf(FindWidget, TEXT("[URPGWidgetSubSystem::GetWidgetWithLayoutType] Not Found Widget")) == false) {
+	if (FindWidget == nullptr) {
 		return nullptr;
 	}
+	/*Debug 전용*/
+	//if (ensureMsgf(FindWidget, TEXT("[URPGWidgetSubSystem::GetWidgetWithLayoutType] Not Found Widget")) == false) {
+	//	return nullptr;
+	//}
 
 	return *FindWidget ? Cast<URPGUserWidgetBase>(*FindWidget) : nullptr;
 }
@@ -173,9 +183,40 @@ void URPGWidgetSubSystem::VisibilityLayout(EWidgetLayoutType LayoutType, ESlateV
 	LayoutWidget->SetVisibility(Visibility);
 }
 
+void URPGWidgetSubSystem::SetWidgetPosition(FName WidgetName, EWidgetLayoutType LayoutType, FVector2D Location)
+{
+	TSubclassOf<URPGUserWidgetBase> WidgetClass = DATATABLE_MANAGER(GetWorld())->GetWidgetClassWithName(WidgetName);
+	if (ensureMsgf(WidgetClass, TEXT("[RPGWidgetSubSystem::PushWidget] Not Widget Class")) == false) {
+		return ;
+	}
+
+	URPGUserWidgetBase* NewWidget = SpawnRPGWidget(WidgetName);
+	if (ensureMsgf(NewWidget, TEXT("[RPGWidgetSubSystem::PushWidget] Not Spawn Widget")) == false) {
+		return ;
+	}
+
+	ULayoutWidget* LayoutWidget = *WidgetLayout.Find(LayoutType);
+	if (ensureMsgf(LayoutWidget, TEXT("[RPGWidgetSubSystem::PushWidget] Not Exist Layout")) == false) {
+		return ;
+	}
+
+	
+	for (UWidget* ChildWidget : LayoutWidget->GetPanel()->GetAllChildren())
+	{
+		if (URPGUserWidgetBase* WidgetChild = Cast<URPGUserWidgetBase>(ChildWidget))
+		{
+			if (WidgetChild->GetClass()->IsChildOf(WidgetClass))
+			{
+				WidgetChild->SetPositionInViewport(Location);
+			}
+		}
+	}
+
+}
+
 void URPGWidgetSubSystem::CreateWidgetLayout()
 {	
-	for (int32 Typeindex = static_cast<int32>(EWidgetLayoutType::None) + 1; Typeindex < static_cast<int32>(EWidgetLayoutType::Etc); ++Typeindex) {
+	for (int32 Typeindex = static_cast<int32>(EWidgetLayoutType::None) + 1; Typeindex <static_cast<int32>(EWidgetLayoutType::Etc); ++Typeindex) {
 
 		const EWidgetLayoutType LayoutType = static_cast<EWidgetLayoutType>(Typeindex);
 		ULayoutWidget * NewWidget = Cast<ULayoutWidget>(SpawnRPGWidget(EWidgetNames::Layout));
@@ -188,7 +229,7 @@ void URPGWidgetSubSystem::CreateWidgetLayout()
 
 	/*Layout 생성 전 Push된 Widget을 Layout Widget 생성 후 Push*/
 	for (const FPushWidgetQueue Queue : PushWidgets) {
-		PushWidget(Queue.WidgetName, Queue.LayoutType);
+		PushWidget(Queue.WidgetName, Queue.LayoutType, Queue.AnchorType);
 	}
 
 	PushWidgets.Empty();

@@ -7,7 +7,6 @@
 		"MonsterMesh": "/Script/Engine.SkeletalMesh'/Game/Asset/Monster/Mutant/Rootbone/Mutant.Mutant'",
 		"MonsterAnimInstance": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Asset/Monster/Mutant/Rootbone/Mutant_Skeleton_AnimBlueprint.Mutant_Skeleton_AnimBlueprint_C'",
 		"MonsterAIController": "/Script/CoreUObject.Class'/Script/RPGGame.MonsterAIController'",
-		"Attack_Behavior": "None",
 		"MonsterAnimation":
 		{
 			"AttackMontage": "/Script/Engine.AnimMontage'/Game/Asset/Monster/Mutant/Rootbone/Animation/Montage/Mutant_Swiping_Montage.Mutant_Swiping_Montage'",
@@ -25,8 +24,9 @@
 		"D_Experience": 0,
 		"RootArray": [
 			{
-				"RootItemclass": "/Script/CoreUObject.Class'/Script/RPGGame.EquipItem'",
-				"DropRate": 0.3
+				"RootItemID": "000001",
+				"DropRate": 0.3,
+				"RollDice": 1
 			}
 		],
 		"MaxRootItemNum": 2
@@ -39,7 +39,6 @@
 		"MonsterMesh": "/Script/Engine.SkeletalMesh'/Game/Asset/Monster/Warrok/Warrok.Warrok'",
 		"MonsterAnimInstance": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Asset/Monster/Warrok/Warrok_Skeleton_AnimBlueprint.Warrok_Skeleton_AnimBlueprint_C'",
 		"MonsterAIController": "/Script/CoreUObject.Class'/Script/RPGGame.MonsterAIController'",
-		"Attack_Behavior": "None",
 		"MonsterAnimation":
 		{
 			"AttackMontage": "None",
@@ -57,8 +56,9 @@
 		"D_Experience": 0,
 		"RootArray": [
 			{
-				"RootItemclass": "/Script/CoreUObject.Class'/Script/RPGGame.EquipItem'",
-				"DropRate": 1
+				"RootItemID": "000001",
+				"DropRate": 1,
+				"RollDice": 1
 			}
 		],
 		"MaxRootItemNum": 1

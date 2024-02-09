@@ -9,6 +9,7 @@
 #include "PlayerDefinition.h"
 #include "RPGGameCharacter.generated.h"
 
+class UInteractionComponent;
 
 UCLASS(config=Game)
 class ARPGGameCharacter : public ACharacter
@@ -42,6 +43,11 @@ class ARPGGameCharacter : public ACharacter
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class ARPGGameHUD* HUD;
 
+	UPROPERTY(EditDefaultsOnly)
+		class UInteractionComponent* InteractionComponent;
+
+public:
+	UInteractionComponent* GetinteractionComponent() { return InteractionComponent; }
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data", Meta = (AllowprivateAccess = true))

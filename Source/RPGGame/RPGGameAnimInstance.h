@@ -5,15 +5,18 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "EnumHeader.h"
+#include "Library/AnimEnumLibrary.h"
+#include "Animation/BlendSpace.h"
 #include "RPGGameAnimInstance.generated.h"
 
 //여러 함수를 동시에 실행 시킬 수 있는 델리게이트
 DECLARE_MULTICAST_DELEGATE(FOnNextAttackDelegata);
 DECLARE_MULTICAST_DELEGATE(FOnAttackHitDelegata);
 
-/**
- * 
- */
+
+class ULocomotionData;
+class UBehaviorAnimData;
+
 UCLASS()
 class RPGGAME_API URPGGameAnimInstance : public UAnimInstance
 {
@@ -41,8 +44,29 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
 	bool IsFaliing = false;
 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
 	EWeaponType WeaponEnum;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
+	bool bEquipWeapon;
+
+
+	/*Locomotion Animation*/
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
+	//TMap<ELocomotion, UAnimationAsset*> DefaultLocomotion;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
+	//TMap<ELocomotion, UAnimationAsset*> EquipLocomotion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
+	ULocomotionData* DefaultLocomotion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
+	ULocomotionData* EquipLocomotion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
+	UBehaviorAnimData* BehaviorAnimData;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))
@@ -64,7 +88,7 @@ public:
 	void UpdateWeapon();
 	void UpdateYawPitch();
 
-	//Attack Animation
+#pragma region Attack
 public:
 	UPROPERTY(EditAnywhere)
 	class UAttackBehavior* AttackBehavior;
@@ -94,5 +118,15 @@ private:
 
 public:
 	void SetBehavior(TSubclassOf<UAttackBehavior> Behavior);
+
+#pragma endregion 
+
+
+#pragma region Locomotion
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
+	UAnimationAsset* GetAnimAsset(ULocomotionData* LocomotionData, ELocomotion LocomotionType, int32 Index = 0);
+
+#pragma endregion
 
 };

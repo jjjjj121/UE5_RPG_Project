@@ -4,8 +4,42 @@
 #include "EnumHeader.h"
 #include "Public/MonsterData.h"
 #include "Animation/AnimInstance.h"
+
 #include "Structs.generated.h"
 
+USTRUCT(BlueprintType)
+struct FRPGPlayerState : public FTableRowBase {
+
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		int32 Level = 1;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float MaxHP = 100;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float MaxMP;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float CurHP = 100;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float CurMP;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float Damage = 10;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float STR = 10;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float DEX = 10;
+
+	UPROPERTY(BlueprintReadOnly, Category = "STATE")
+		float INT = 10;
+};
 USTRUCT(BlueprintType)
 struct FWidgetData : public FTableRowBase {
 
@@ -25,8 +59,9 @@ struct FRootArrayData {
 	GENERATED_USTRUCT_BODY()
 
 public:
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	//	TSubclassOf<class AItem> RootItemclass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString RootItemID;
+		//TSubclassOf<class UItemDefinition> RootItemclass;
 
 	/*다이스 돌릴 때마다 몇퍼센트 확률로 드랍확정 될 것인지*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -61,97 +96,133 @@ public:
 		UAnimMontage* Death_Reaction_Montages;
 };
 
+USTRUCT(BlueprintType)
+struct FItemTable : public FTableRowBase {
+
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+	TSubclassOf<class UItemDefinition> ItemDef;
 
 
-USTRUCT()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+	TSubclassOf<class UEquipmentDefinition> EquipDef;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+	class UPrimaryDataAsset* AnimationData;
+
+public:
+	FItemTable() {
+		Init();
+	}
+
+	void Init() {
+		ItemDef = nullptr;
+		EquipDef = nullptr;
+		AnimationData = nullptr;
+	}
+};
+
+
+
+USTRUCT(BlueprintType)
 struct FItemData : public FTableRowBase {
 
 	GENERATED_USTRUCT_BODY()
 
 public:
-	//Item ID Code
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FString D_ItemID;
-
-	//ItemName
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FString D_ItemName;
-
-	//Item 등급
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		EItemGrade D_ItemGrade;
-
-	//Category
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		EItemCategoryType D_Category;
-
-	//Level 제한
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 D_Levellimit;
-
-	//class
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	//	TSubclassOf<class AItem> ItemClass;
-
-	//Mesh
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		USkeletalMesh* ItemMesh;
-
-	//Icon
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		UStaticMesh* ItemMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		FString ItemName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		EItemGrade ItemGrade;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		EItemCategoryType Category;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		FString Description;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = ItemInfo)
 		class UTexture2D* ItemIcon;
 
-	//MAXHP
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_MAXHP;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		float BuyPrice;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		float SellPrice;
 
-	//MAXMP
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_MAXMP;
+	//스택을 쌓는 경우인지? (소모품, 재료 등)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ItemInfo)
+		bool IsStack;
 
-	//공격력
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_Damage;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Fragment)
+	//	TArray<TSubclassOf<class UItemFragment>> Fragments;
 
-	//방어력
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_Defence;
+	/*Equip에서만 추가될 것들*/
 
-	//힘
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_STRlimit;
+	/*EquipDefinition으로 옮기자*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		EEquipCategoryType EquipCategory;
 
-	//민첩
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_DEXlimit;
 
-	//지능
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_INTlimit;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		float Damage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		float Defence;
 
-	//Buy Price
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_BuyPrice;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		float STRlimit;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		float DEXlimit;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		float INTlimit;
 
-	//Sell Price
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_SellPrice;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		float RepairPrice;
 
-	//Repair Price
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_RepairPrice;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		int32 ItemSkill;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = EquipInfo)
+		bool IsDualWield;
 
-	//추가효과 (버프 또는 디버프 같은 것)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float D_ItemSkill;
+	/*Consume Property*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Consume)
+		float ModifierValue;
 
-	//양손 잡이인지
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool D_IsDualWield;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<class UAttackBehavior> D_AttackBehavior;
+public:
+	FItemData() {
+		Init();
+	}
 
+	void Init() {
+		ItemName = "No Name";
+		ItemGrade = EItemGrade::Common;
+		Category = EItemCategoryType::SPECIAL;
+		Description = "No Description";
+		ItemIcon = nullptr;
+
+		BuyPrice = 0;
+		SellPrice = 0;
+
+		IsStack = true;
+
+		EquipCategory = EEquipCategoryType::NONE;
+
+		ItemMesh = nullptr;
+
+		Damage = 0;
+		Defence = 0;
+		STRlimit = 0;
+		DEXlimit = 0;
+		INTlimit = 0;
+
+		RepairPrice = 0;
+
+		ItemSkill = 0;
+		IsDualWield = 0;
+
+	}
 };
 
 //Monster Table
@@ -185,9 +256,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<class AAIController> MonsterAIController;
 
-	//Attack Behavior
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<UAttackBehavior> Attack_Behavior;
+	////Attack Behavior
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//	TSubclassOf<UAttackBehavior> Attack_Behavior;
 
 	//TEST PROPERTY (Attack_Behavior 안에 React 애니메이션을 테이블에서 설정해주고 싶음)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -227,7 +298,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 MaxRootItemNum;
-	
+
 
 	//+몬스터에 따른 애니메이션?
 	//+ AI설정

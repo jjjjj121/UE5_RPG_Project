@@ -4,13 +4,14 @@
 #include "Library/RPGWidgetFunctionLibrary.h"
 #include "System/RPGGameInstance.h"
 
-URPGUserWidgetBase* URPGWidgetFunctionLibrary::PushWidget(UObject* WorldContextObject, FName WidgetName, EWidgetLayoutType LayoutType)
+URPGUserWidgetBase* URPGWidgetFunctionLibrary::PushWidget(UObject* WorldContextObject, FName WidgetName, EWidgetLayoutType LayoutType, EWidgetAnchorType AnchorType)
 {
     if (WorldContextObject == nullptr) {
         return nullptr;
     }
 
-    return WIDGET_SUBSYSTEM(WorldContextObject)->PushWidget(WidgetName, LayoutType);
+
+    return WIDGET_SUBSYSTEM(WorldContextObject)->PushWidget(WidgetName, LayoutType, AnchorType);
 }
 
 URPGUserWidgetBase* URPGWidgetFunctionLibrary::PopWidget(UObject* WorldContextObject, FName WidgetName, EWidgetLayoutType LayoutType)

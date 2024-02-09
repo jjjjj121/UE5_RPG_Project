@@ -5,13 +5,28 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/Vector.h"
+
 #include "RPGGameCharacter.h"
+#include "RPGGamePlayerController.h"
+#include "UserMenu/AC_UserMenuComponent.h"
+
+#include "DataAsset/LocomotionData.h"
+#include "DataAsset/BehaviorAnimData.h"
+
 #include "Behavior/AttackBehavior.h"
 #include "Behavior/AttackBehavior_Non.h"
+
 #include "Kismet/KismetMathLibrary.h"
 
-URPGGameAnimInstance::URPGGameAnimInstance(FObjectInitializer const& object_initializer)
+URPGGameAnimInstance::URPGGameAnimInstance(FObjectInitializer const& object_initializer) : Super(object_initializer)
 {
+	static ConstructorHelpers::FObjectFinder<UDataAsset>DataAsset(TEXT("/Game/DataAsset/DA_Default_Locomotion_Player.DA_Default_Locomotion_Player"));
+
+	if (DataAsset.Succeeded()) {
+		DefaultLocomotion = Cast<ULocomotionData>(DataAsset.Object);
+	}
+	//UDataAsset* DataAsset;
+
 
 }
 void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -75,6 +90,11 @@ void URPGGameAnimInstance::UpdateIsPawnFalling()
 
 void URPGGameAnimInstance::UpdateWeapon()
 {
+	if (ARPGGamePlayerController* Controller = Cast<ARPGGamePlayerController>(OwningCharacter->GetController())) {
+		//UE_LOG(LogTemp, Warning, TEXT("URPGGameAnimInstance : UpdateWeapon"));
+		bEquipWeapon = Controller->UserMenuComp->IsEquipWeapon();
+	}
+
 	this->WeaponEnum = OwningCharacter->WeaponEnum;
 
 }
@@ -94,6 +114,9 @@ void URPGGameAnimInstance::UpdateYawPitch()
 	YawAnim = Result_Rotator.Yaw;
 
 }
+
+
+#pragma region Attack
 
 void URPGGameAnimInstance::PlayAttackMontage()
 {
@@ -139,4 +162,27 @@ void URPGGameAnimInstance::SetBehavior(TSubclassOf<UAttackBehavior> Behavior)
 	AttackBehavior->ParentAnimInstance = this;
 
 }
+
+#pragma endregion 
+
+
+#pragma region Locomotion
+
+UAnimationAsset* URPGGameAnimInstance::GetAnimAsset(ULocomotionData* LocomotionData, ELocomotion LocomotionType, int32 Index)
+{
+	if (LocomotionData == nullptr) {
+		return nullptr;
+	}
+
+	if (FAnimDataArray* AnimDataArray = LocomotionData->LocomotionData.Find(LocomotionType)) {
+		if (AnimDataArray->AnimAssetList.IsValidIndex(Index)) {
+			return AnimDataArray->AnimAssetList[Index];
+		}
+	}
+
+
+	return nullptr;
+}
+
+#pragma region
 

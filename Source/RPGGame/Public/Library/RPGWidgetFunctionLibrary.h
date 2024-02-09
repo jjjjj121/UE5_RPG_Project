@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "WidgetEnumLibrary.h"
 #include "RPGWidgetFunctionLibrary.generated.h"
 
 /**
@@ -18,7 +19,7 @@ class RPGGAME_API URPGWidgetFunctionLibrary : public UBlueprintFunctionLibrary
 	
 public:
 	UFUNCTION(BlueprintCallable, Meta = (WorldContext = "WorldContextObject"), Category = "Widget")
-		static URPGUserWidgetBase* PushWidget(UObject* WorldContextObject, FName WidgetName, EWidgetLayoutType LayoutType);
+		static URPGUserWidgetBase* PushWidget(UObject* WorldContextObject, FName WidgetName, EWidgetLayoutType LayoutType, EWidgetAnchorType AnchorType = EWidgetAnchorType::None);
 
 	UFUNCTION(BlueprintCallable, Meta = (WorldContext = "WorldContextObject"), Category = "Widget")
 		static URPGUserWidgetBase* PopWidget(UObject* WorldContextObject, FName WidgetName, EWidgetLayoutType LayoutType);

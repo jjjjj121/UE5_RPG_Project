@@ -21,10 +21,31 @@ class RPGGAME_API IInteractionInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual bool IsAvailableInteraction() const = 0;
-	virtual void ExecuteInteraction() = 0;
-	virtual void StopInteration() = 0;
-	virtual TArray<class AItem*> GetRootItemList() = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	bool IsAvailableInteraction() const;
+
+	UFUNCTION(BlueprintNativeEvent)
+	void IsShowIcon();
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool ExecuteInteraction(AActor* InteractionTarget, UItemInstance* NewItemInstance);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void StopInteration(AActor* InteractionTarget);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void SetTouchActor(AActor* NewTouchActor);
+
+	UFUNCTION(BlueprintNativeEvent)
+	TArray<class UItemInstance*> GetRootItemList();
+
+	UFUNCTION(BlueprintNativeEvent)
+	FName GetInteractionActorName();
+
+	UFUNCTION(BlueprintNativeEvent)
+	FVector GetInteractionWidgetLocation();
+
+
+	class ARPGGameCharacter* TouchActor;
 };

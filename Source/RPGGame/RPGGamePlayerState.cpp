@@ -6,7 +6,7 @@
 
 void ARPGGamePlayerState::UpdateHP(float TakeDamage)
 {
-	CurHP = FMath::Clamp<float>(CurHP - TakeDamage, 0, MaxHP);
-	UE_LOG(LogTemp, Warning, TEXT("CUR HP : %f"), CurHP);
+	State.CurHP = FMath::Clamp<float>(State.CurHP + TakeDamage, 0, State.MaxHP);
+	UE_LOG(LogTemp, Warning, TEXT("CUR HP : %f"), State.CurHP);
 
 }

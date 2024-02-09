@@ -2,12 +2,13 @@
 
 
 #include "RPGGamePlayerController.h"
-#include "Inventory/AC_InventoryComponent.h"
+#include "UserMenu/AC_UserMenuComponent.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
 #include "Library/WidgetEnumLibrary.h"
+#include "Library/WidgetStructLibrary.h"
 #include "Library/RPGWidgetFunctionLibrary.h"
 
 #include "RPGGameCharacter.h"
@@ -19,8 +20,10 @@ ARPGGamePlayerController::ARPGGamePlayerController()
 
 	/*시작 위젯 추가*/
 	BaseWidgetName.Add(EWidgetNames::PlayerHUD);
+	BaseWidgetName.Add(EWidgetNames::Interaction);
 
-	Inventory = CreateDefaultSubobject<UAC_InventoryComponent>(TEXT("INVENTORY"));
+	UserMenuComp = CreateDefaultSubobject<UAC_UserMenuComponent>(TEXT("UserMenu"));
+
 }
 
 void ARPGGamePlayerController::OnPossess(APawn* NewPawn)
@@ -48,17 +51,18 @@ void ARPGGamePlayerController::BindAction()
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent)) {
 
 		//Interact
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ARPGGamePlayerController::OnInteractPress);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ARPGGamePlayerController::OnInteractTrigger);
 
 		//Inventory
 		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnInventory);
-		UE_LOG(LogTemp, Warning, TEXT("BindAction : CONTROLLER"));
 
 		//Attack
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnAttack);
 
 		//List Up Down
 		EnhancedInputComponent->BindAction(ListUpDownAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnWheelUpDown);
+
 	}
 }
 
@@ -76,19 +80,32 @@ void ARPGGamePlayerController::SetupInput()
 void ARPGGamePlayerController::SetupWidget()
 {
 	for (const FName& WidgetName : BaseWidgetName) {
-		URPGWidgetFunctionLibrary::PushWidget(GetWorld(), WidgetName, EWidgetLayoutType::Main);
+		URPGWidgetFunctionLibrary::PushWidget(GetWorld(), WidgetName, EWidgetLayoutType::Main, EWidgetAnchorType::Fill);
 	}
 }
 
-void ARPGGamePlayerController::OnInteract(const FInputActionValue& Value)
+void ARPGGamePlayerController::OnInteractPress(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInteract"));
+	UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInteractPress"));
 
-	//if (Value.Get<bool>()) {
-	//	if (HUD->bRootItem) {
-	//		HUD->OpenRootItemList();
-	//	}
-	//}
+	FWidgetParam Widgetparam;
+	Widgetparam.ActorParam = PossessedPlayer;
+
+	URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_PreesKey, Widgetparam);
+
+}
+
+void ARPGGamePlayerController::OnInteractTrigger(const FInputActionValue& Value)
+{
+	if (Value.Get<float>()) {
+		//UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInteractTrigger %f"), Value.Get<float>());
+		FWidgetParam Widgetparam;
+		Widgetparam.FloatParam = GetWorld()->GetDeltaSeconds();
+		Widgetparam.ActorParam = PossessedPlayer;
+
+		URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_TriggerKey, Widgetparam);
+	}
+
 }
 
 void ARPGGamePlayerController::OnInventory(const FInputActionValue& Value)
@@ -96,7 +113,7 @@ void ARPGGamePlayerController::OnInventory(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInventory"));
 
 	if (Value.Get<bool>()) {
-		Inventory->ShowInventory();
+		UserMenuComp->ShowUserMenu(EUserMenuType::Inventory);
 	}
 }
 
@@ -118,12 +135,18 @@ void ARPGGamePlayerController::OnWheelUpDown(const FInputActionValue& Value)
 			UE_LOG(LogTemp, Warning, TEXT("EWheelType : Default"));
 		}
 		else if (WheelType == EWheelType::ListType) {
-			if (Value.Get<float>() >= 1.f) {
-				UE_LOG(LogTemp, Warning, TEXT("LIST UP"));
-			}
-			else if (Value.Get<float>() <= -1.f) {
-				UE_LOG(LogTemp, Warning, TEXT("LIST Down"));
-			}
+			FWidgetParam WidgetParam;
+			Value.Get<float>() >= 1.f ? WidgetParam.BoolParam = true : WidgetParam.BoolParam = false;
+			
+			URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_SelectRoot, WidgetParam);
+
+			//if (Value.Get<float>() >= 1.f) {
+			//	UE_LOG(LogTemp, Warning, TEXT("LIST UP"));
+
+			//}
+			//else if (Value.Get<float>() <= -1.f) {
+			//	UE_LOG(LogTemp, Warning, TEXT("LIST Down"));
+			//}
 		}
 	}
 

@@ -16,7 +16,16 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Library/RPGFunctionLibrary.h"
+#include "Library/RPGWidgetFunctionLibrary.h"
+#include "Library/WidgetEnumLibrary.h"
+
+#include "UserMenu/Inventory/ItemInstance.h"
+#include "UserMenu/Inventory/ItemDefinition.h"
+#include "UserMenu/AC_UserMenuComponent.h"
+
 #include "RPGGame/RPGGameCharacter.h"
+#include "RPGGame/RPGGamePlayerController.h"
 
 // Sets default values
 AMonster_AI::AMonster_AI()
@@ -360,13 +369,18 @@ void AMonster_AI::SetRootItems()
 		for (FRootArrayData RootItemData : RootArray) {
 			for (int i = 0; i < RootItemData.RollDice; ++i) {
 				float Dice = FMath::RandRange(0.f, 1.f);
-				UE_LOG(LogTemp, Warning, TEXT("DICE : %f"), Dice);
+				//UE_LOG(LogTemp, Warning, TEXT("DICE : %f"), Dice);
 				if (Dice <= RootItemData.DropRate) {
 					RootItemData.ItemNum++;
 				}
 			}
 			if (RootItemData.ItemNum) {
+				UItemInstance* NewInstance = NewObject<UItemInstance>(this);
+				NewInstance->ItemDefinition = NewObject<UItemDefinition>(this);
+				NewInstance->InitInstance(RootItemData.RootItemID);
+				NewInstance->ItemStack = RootItemData.ItemNum;
 
+				RootItems.Add(NewInstance);
 			}
 		}
 	}
@@ -391,20 +405,61 @@ void AMonster_AI::SetRagdollPhysics()
 	SetLifeSpan(60.0f);
 }
 
-bool AMonster_AI::IsAvailableInteraction() const
+bool AMonster_AI::IsAvailableInteraction_Implementation() const
 {
-	return IsDead;
+	return IsDead && RootItems.Num();
 }
 
-void AMonster_AI::ExecuteInteraction()
+bool AMonster_AI::ExecuteInteraction_Implementation(AActor* InteractionTarget, UItemInstance* NewItemInstance)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[AMonster_AI] : ExecuteInteraction_Implementation"));
+
+	// TouchActor의 인벤토리에 추가
+	if (ACharacter* Character = Cast<ACharacter>(TouchActor))
+	{
+		if (ARPGGamePlayerController* PlayerController = URPGFunctionLibrary::GetPlayerController(Character))
+		{
+			if (UAC_UserMenuComponent* InventoryComponent = PlayerController->FindComponentByClass<UAC_UserMenuComponent>())
+			{
+
+				if (InventoryComponent->AddItemToInventory(NewItemInstance))
+				{
+					int32 Index = RootItems.Find(NewItemInstance);
+					RootItems.RemoveAt(Index);
+
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
-void AMonster_AI::StopInteration()
+void AMonster_AI::StopInteration_Implementation(AActor* InteractionTarget)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[AMonster_AI] : StopInteration_Implementation"));
 }
 
-TArray<AItem*> AMonster_AI::GetRootItemList()
+void AMonster_AI::SetTouchActor_Implementation(AActor* NewTouchActor)
+{
+	TouchActor = Cast<ARPGGameCharacter>(NewTouchActor);
+}
+
+TArray<UItemInstance*> AMonster_AI::GetRootItemList_Implementation()
 {
 	return RootItems;
+}
+
+FName AMonster_AI::GetInteractionActorName_Implementation()
+{
+	return FName(MonsterName);
+}
+
+FVector AMonster_AI::GetInteractionWidgetLocation_Implementation()
+{
+	FVector WidgetLocation = GetMesh()->GetSocketLocation(FName("Spine"));
+	WidgetLocation.Z += 30.f;
+
+	return WidgetLocation;
 }

@@ -33,12 +33,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "HUDWidget", meta = (BindWidget))
 		class UProgressBar* PB_MPbar;
 
-	UPROPERTY(BlueprintReadOnly, Category = "HUDWidget", meta = (BindWidget))
-		class UW_CheckRoot* BP_W_CheckRoot;
-
-	UPROPERTY(BlueprintReadOnly, Category = "HUDWidget", meta = (BindWidget))
-		class UW_RootItem* BP_W_RootItem;
-
 	UPROPERTY(BlueprintReadWrite, Category = "Value", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 		float W_HP_Per;
 

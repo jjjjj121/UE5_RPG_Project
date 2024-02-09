@@ -1,14 +1,16 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RPGGameCharacter.h"
+#include "GameFramework/Controller.h"
+
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputComponent.h"
+#include "Interface/InteractionComponent.h"
 
+#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
 #include "RPGGameAnimInstance.h"
@@ -21,8 +23,6 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "DamageType/DamageType_Base.h"
-
-#include "Interface/InteractionInterface.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,6 +68,9 @@ ARPGGameCharacter::ARPGGameCharacter()
 	//Init Attack Combo
 	AttackEndComboState();
 
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
+	
+
 }
 
 void ARPGGameCharacter::BeginPlay()
@@ -111,30 +114,30 @@ void ARPGGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-	FVector StartPoint = Camera->GetCameraLocation();
-	FVector EndPoint = (UKismetMathLibrary::GetForwardVector(Camera->GetCameraRotation()) * 500.f) + StartPoint;
-	
-	const FName TraceTag("DebugTraceTag");
+	//APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	//FVector StartPoint = Camera->GetCameraLocation();
+	//FVector EndPoint = (UKismetMathLibrary::GetForwardVector(Camera->GetCameraRotation()) * 500.f) + StartPoint;
+	//
+	//const FName TraceTag("DebugTraceTag");
 
-	GetWorld()->DebugDrawTraceTag = TraceTag;
+	//GetWorld()->DebugDrawTraceTag = TraceTag;
 
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.TraceTag = TraceTag;
-	CollisionParams.AddIgnoredActor(this);
+	//FCollisionQueryParams CollisionParams;
+	//CollisionParams.TraceTag = TraceTag;
+	//CollisionParams.AddIgnoredActor(this);
 
-	FHitResult HitResult;
+	//FHitResult HitResult;
 
-	HUD->bRootItem = false;
+	//HUD->bRootItem = false;
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECollisionChannel::ECC_Visibility, CollisionParams)) {
-		IInteractionInterface* InteractionActor = Cast<IInteractionInterface>(HitResult.GetActor());
-		if (InteractionActor && InteractionActor->IsAvailableInteraction()) {
-			HUD->SetRootItemList(InteractionActor->GetRootItemList());
-			HUD->bRootItem = true;
-		}
-	}
-	HUD->CheckRoot();
+	//if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECollisionChannel::ECC_Visibility, CollisionParams)) {
+	//	IInteractionInterface* InteractionActor = Cast<IInteractionInterface>(HitResult.GetActor());
+	//	if (InteractionActor && InteractionActor->IsAvailableInteraction()) {
+	//		HUD->SetRootItemList(InteractionActor->GetRootItemList());
+	//		HUD->bRootItem = true;
+	//	}
+	//}
+	//HUD->CheckRoot();
 	
 
 	//DrawDebugLine(GetWorld(), StartPoint, EndPoint, IsHit ? FColor(255, 0, 0) : FColor(0, 255, 0),false, 1, 0, 0.5f);
@@ -149,9 +152,9 @@ float ARPGGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 
 	ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState());
 	if (MyPlayerState) {
-		MyPlayerState->UpdateHP(Damage);
+		MyPlayerState->UpdateHP(-Damage);
 
-		if (MyPlayerState->CurHP <= 0) {
+		if (MyPlayerState->State.CurHP <= 0) {
 			IsDead = true;
 		}
 	}
@@ -185,7 +188,7 @@ float ARPGGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		
 		AnimInstance->Montage_Play(HitReact_Montage);
 
-		ReceivingDamage(MyPlayerState->MaxHP, MyPlayerState->CurHP);
+		ReceivingDamage(MyPlayerState->State.MaxHP, MyPlayerState->State.CurHP);
 	}
 	/*Player Dead*/
 	else {
@@ -253,7 +256,7 @@ float ARPGGameCharacter::GetDamage()
 {
 	ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState());
 	if (MyPlayerState) {
-		return MyPlayerState->Damage;
+		return MyPlayerState->State.Damage;
 	}
 	
 	return -1.f;

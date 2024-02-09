@@ -18,11 +18,11 @@ class RPGGAME_API UDataTableManager : public UObject
 	
 #pragma region Item
 public:
-	FItemData* GetItemData(FString ItemDataID);
+	FItemTable* GetItemData(FString ItemDataID);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Table")
-	UDataTable* ItemDataTable;
+		UDataTable* ItemDataTable;
 #pragma endregion
 
 

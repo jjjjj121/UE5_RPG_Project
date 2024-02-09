@@ -21,9 +21,7 @@ public:
 private:
 	/*시작 시 추가되는 위젯들*/
 	TArray<FName> BaseWidgetName;
-
 	class ARPGGameCharacter* PossessedPlayer;
-
 	class ARPGGameHUD* HUD;
 
 protected:
@@ -37,7 +35,7 @@ public:
 	/*Componenet*/
 	/*Inventory*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
-		class UAC_InventoryComponent* Inventory;
+		class UAC_UserMenuComponent* UserMenuComp;
 
 #pragma region Input
 private:
@@ -45,7 +43,7 @@ private:
 	void SetupInput();
 	void SetupWidget();
 
-protected:
+public:
 	/** Interation Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* InteractAction;
@@ -68,7 +66,10 @@ protected:
 
 protected:
 	UFUNCTION()
-		void OnInteract(const FInputActionValue& Value);
+		void OnInteractPress(const FInputActionValue& Value);
+
+	UFUNCTION()
+		void OnInteractTrigger(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnInventory(const FInputActionValue& Value);
@@ -83,9 +84,12 @@ protected:
 	void EnhancedInputMapping();
 
 
-public:
+private:
 	/*Wheel Type*/
 	EWheelType WheelType = EWheelType::Default;
+
+public:
+	void SetWheelType(EWheelType NewType) { WheelType = NewType; }
 #pragma endregion
 
 };

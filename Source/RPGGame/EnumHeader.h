@@ -17,19 +17,61 @@ enum class EItemCategoryType : uint8
 	MELEEWEAPONS,	//근접 무기
 	RANGEWEAPONS,	//원거리 무기
 	SHIELDS,		//방패
+	CLOTHES,		//장비 옷
 	MATERIAL,		//재료
 	CONSUMABLE,		//소비
 	SPECIAL,		//특별
 	ETC,			//기타 등등
 };
 
+/*Equip Slot*/
 UENUM(BlueprintType)
-enum class EEquipItemType : uint8
+enum class EEquipCategoryType : uint8
 {
-	Weapon			UMETA(DisplayName = "Weapon"),		//무기
-	Armor			UMETA(DisplayName = "Armor"),		//방어구
-	Accessary		UMETA(DisplayName = "Accessary"),	//장신구
+	MAINWEAPON,		//주 장착 무기
+	SUBWEAPON,		//보조 장착 무기
+	ARROW,			//화살
+
+	HEAD,			//머리
+	TOP,			//상의
+	PANTS,			//하의
+	GLOVES,			//장갑
+	SHOES,			//신발
+
+	SUBITEMS1,		//보조 아이템1
+	SUBITEMS2,		//보조 아이템2
+
+	NONE,
+	
 };
+
+/*Equipment Type*/
+UENUM(BlueprintType)
+enum class EEquipmentType : uint8
+{
+	WEAPON,			//무기
+	SHIELD,			//방패
+	ARROW,			//화살
+
+	HEAD,			//머리
+	TOP,			//상의
+	PANTS,			//하의
+	GLOVES,			//장갑
+	SHOES,			//신발
+
+	SUBITEMS,		//보조 아이템
+
+	MAX
+};
+
+UENUM(BlueprintType)
+enum class EOverlayType : uint8
+{
+	Default,
+	OneHandedWeapon UMETA(DisplayName = "One-Handed Weapon"),
+	TwoHandedWeapon UMETA(DisplayName = "Two-Handed Weapon"),
+};
+
 
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
@@ -64,8 +106,9 @@ enum class EItemGrade : uint8
 	Common			UMETA(DisplayName = "Common"),			//일반 등급
 	Magic			UMETA(DisplayName = "Magic"),			//매직 등급
 	Rare			UMETA(DisplayName = "Rare"),			//레어 등급
-	Legendary		UMETA(DisplayName = "Legendary"),		//레전더리 등급
 	Unique			UMETA(DisplayName = "Unique"),			//유니크 등급
+	Legendary		UMETA(DisplayName = "Legendary"),		//레전더리 등급
+	None			UMETA(DisplayName = "None"),			
 };
 
 

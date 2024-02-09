@@ -27,11 +27,7 @@ public:
 
 public:
 	void BeginPlay() override;
-	void CheckRoot();
-	void OpenRootItemList();
-	void SelectButton(int32 ListIndex);
 
-	void SetRootItemList(TArray<class AItem*> NewRootItems);
 public:
 	bool bRootItem;
 };

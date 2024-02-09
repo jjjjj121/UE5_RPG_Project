@@ -9,7 +9,7 @@
 #include "Monster_AI.generated.h"
 
 struct FRootArrayData;
-class AItem;
+
 UCLASS()
 class RPGGAME_API AMonster_AI : public ACharacter, public IInteractionInterface
 {
@@ -83,7 +83,7 @@ private:
 
 	bool IsDead = false;
 
-	TArray<AItem*> RootItems;
+	TArray<UItemInstance*> RootItems;
 
 protected:
 	// Called when the game starts or when spawned
@@ -147,8 +147,12 @@ protected:
 
 	/*Interaction Interface*/
 public:
-	virtual bool IsAvailableInteraction() const override;
-	virtual void ExecuteInteraction() override;
-	virtual void StopInteration() override;
-	virtual TArray<AItem*> GetRootItemList() override;
+	virtual bool IsAvailableInteraction_Implementation() const override;
+	virtual bool ExecuteInteraction_Implementation(AActor* InteractionTarget, UItemInstance* NewItemInstance) override;
+	virtual void StopInteration_Implementation(AActor* InteractionTarget) override;
+	virtual void SetTouchActor_Implementation(AActor* NewTouchActor) override;
+	virtual TArray<UItemInstance*> GetRootItemList_Implementation() override;
+	virtual FName GetInteractionActorName_Implementation() override;
+	virtual FVector GetInteractionWidgetLocation_Implementation() override;
+
 };
