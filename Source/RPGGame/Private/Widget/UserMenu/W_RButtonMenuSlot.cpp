@@ -39,7 +39,7 @@ void UW_RButtonMenuSlot::SetAction(EButtonMenuType NewType)
 	case EButtonMenuType::Equip:
 		TB_Action->SetText(FText::FromString(TEXT("장착")));
 		break;
-	case EButtonMenuType::NonEquip:
+	case EButtonMenuType::UnEquip:
 		TB_Action->SetText(FText::FromString(TEXT("장착 해제")));
 		break;
 	case EButtonMenuType::Use:
@@ -65,8 +65,9 @@ void UW_RButtonMenuSlot::OnClicked_Button()
 		UE_LOG(LogTemp, Warning, TEXT("[UW_RButtonMenuSlot] : Equip"));
 		ParentWidget->TargetSlot->EquipItem();
 		break;
-	case EButtonMenuType::NonEquip:
-		UE_LOG(LogTemp, Warning, TEXT("[UW_RButtonMenuSlot] : NonEquip"));
+	case EButtonMenuType::UnEquip:
+		UE_LOG(LogTemp, Warning, TEXT("[UW_RButtonMenuSlot] : UnEquip"));
+		ParentWidget->TargetSlot->UnEquipItem();
 		break;
 	case EButtonMenuType::Use:
 		UE_LOG(LogTemp, Warning, TEXT("[UW_RButtonMenuSlot] : Use"));

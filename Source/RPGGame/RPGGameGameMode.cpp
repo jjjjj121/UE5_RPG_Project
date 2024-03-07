@@ -14,7 +14,7 @@ ARPGGameGameMode::ARPGGameGameMode()
 	
 
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/GameMode/BP_ModularCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Character/RPG_Character/BP_ModularCharacter"));
 	if (PlayerPawnBPClass.Class != NULL){
 		DefaultPawnClass = PlayerPawnBPClass.Class;	
 	}

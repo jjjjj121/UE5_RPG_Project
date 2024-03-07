@@ -53,14 +53,15 @@ void UW_Inventory::OnClicked_Special() { ShowGrid(EItemCategoryType::SPECIAL); }
 
 void UW_Inventory::UpdateAllList(TMap<EItemCategoryType, FItemInstanceArray> _Inventory, TMap<EItemCategoryType, int32> _ListMaxNum)
 {
-	/*¼ÕºÁ¾ß´ï*/
 
 	for (auto& i : _Inventory) {
 		if (GridPanelList.Contains(i.Key)){
 			UUniformGridPanel* TargetGrid;
 			TargetGrid = *GridPanelList.Find(i.Key);
-			if (TargetGrid)
-			{
+			if (TargetGrid){
+				if (TargetGrid->GetChildrenCount()) {
+					TargetGrid->ClearChildren();
+				}
 				UpdateList(i.Value.InstanceList, TargetGrid, *_ListMaxNum.Find(i.Key));
 			}
 		}

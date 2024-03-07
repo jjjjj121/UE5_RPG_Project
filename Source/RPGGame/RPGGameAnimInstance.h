@@ -13,8 +13,6 @@
 DECLARE_MULTICAST_DELEGATE(FOnNextAttackDelegata);
 DECLARE_MULTICAST_DELEGATE(FOnAttackHitDelegata);
 
-
-class ULocomotionData;
 class UBehaviorAnimData;
 
 UCLASS()
@@ -22,51 +20,33 @@ class RPGGAME_API URPGGameAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+#pragma region Property
+
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	float CurrentPawnSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	float CurDirection;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	FVector Velocity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-		float PitchAnim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-		float YawAnim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	bool ShouldMove = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	bool IsFaliing = false;
-
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
 	EWeaponType WeaponEnum;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
 	bool bEquipWeapon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
+	bool bEquipShield;
 
-	/*Locomotion Animation*/
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	//TMap<ELocomotion, UAnimationAsset*> DefaultLocomotion;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	//TMap<ELocomotion, UAnimationAsset*> EquipLocomotion;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	ULocomotionData* DefaultLocomotion;
+	UBehaviorAnimData* DefaultAnimData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	ULocomotionData* EquipLocomotion;
+	UBehaviorAnimData* WeaponAnimData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	UBehaviorAnimData* BehaviorAnimData;
+	UBehaviorAnimData* ShieldAnimData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
+	float GroundDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character_State_Data", Meta = (AllowprivateAccess = true))
+	bool IsFight;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))
@@ -74,6 +54,11 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))
 	class UCharacterMovementComponent* MovementComponent;
+
+public:
+	void SetIsFight(bool NewFightStance) { IsFight = NewFightStance; }
+
+#pragma endregion
 
 protected:
 	URPGGameAnimInstance(FObjectInitializer const& object_initializer);
@@ -83,15 +68,18 @@ public:
 	virtual void NativeInitializeAnimation() override;
 
 public:
-	void UpdateAnimProperty();
-	void UpdateIsPawnFalling();
-	void UpdateWeapon();
-	void UpdateYawPitch();
+	void UpdateWeaponShield();
+	void SetWeaponAnimData(UBehaviorAnimData* NewAnimData);
+	void SetSheildAnimData(UBehaviorAnimData* NewAnimData);
+
+	UBehaviorAnimData* GetCurBehavior();
+
+	void PlayMontage();
 
 #pragma region Attack
 public:
-	UPROPERTY(EditAnywhere)
-	class UAttackBehavior* AttackBehavior;
+	//UPROPERTY(EditAnywhere)
+	//class UAttackBehavior* AttackBehavior;
 
 
 public:
@@ -116,8 +104,6 @@ private:
 	UFUNCTION()
 		void AnimNotify_NextAttackNotify();
 
-public:
-	void SetBehavior(TSubclassOf<UAttackBehavior> Behavior);
 
 #pragma endregion 
 
@@ -125,8 +111,9 @@ public:
 #pragma region Locomotion
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
-	UAnimationAsset* GetAnimAsset(ULocomotionData* LocomotionData, ELocomotion LocomotionType, int32 Index = 0);
+	UAnimationAsset* GetAnimAsset(UBehaviorAnimData* BehaviorAnimData, ELocomotionCategory LocomotionType, int32 Index = 0);
 
 #pragma endregion
+
 
 };

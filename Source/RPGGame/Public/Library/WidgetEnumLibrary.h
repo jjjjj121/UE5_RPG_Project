@@ -7,7 +7,7 @@ UENUM(BlueprintType)
 enum class EButtonMenuType : uint8
 {
 	Equip,
-	NonEquip,
+	UnEquip,
 	Use,
 	ThrowAway,
 	ETC,

@@ -9,24 +9,23 @@
 #include "RPGGameCharacter.h"
 #include "RPGGamePlayerController.h"
 #include "UserMenu/AC_UserMenuComponent.h"
+#include "Component/PlayerCombatComponent.h"
+#include "Component/RPGCharacterMovementComponent.h"
 
 #include "DataAsset/LocomotionData.h"
 #include "DataAsset/BehaviorAnimData.h"
-
-#include "Behavior/AttackBehavior.h"
-#include "Behavior/AttackBehavior_Non.h"
 
 #include "Kismet/KismetMathLibrary.h"
 
 URPGGameAnimInstance::URPGGameAnimInstance(FObjectInitializer const& object_initializer) : Super(object_initializer)
 {
-	static ConstructorHelpers::FObjectFinder<UDataAsset>DataAsset(TEXT("/Game/DataAsset/DA_Default_Locomotion_Player.DA_Default_Locomotion_Player"));
+	static ConstructorHelpers::FObjectFinder<UDataAsset>DataAsset(TEXT("/Game/DataAsset/DA_Default_BehaviorAnim.DA_Default_BehaviorAnim"));
 
 	if (DataAsset.Succeeded()) {
-		DefaultLocomotion = Cast<ULocomotionData>(DataAsset.Object);
+		DefaultAnimData = Cast<UBehaviorAnimData>(DataAsset.Object);
 	}
 	//UDataAsset* DataAsset;
-
+	
 
 }
 void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -34,12 +33,13 @@ void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
 	if (OwningCharacter) {
-		UpdateAnimProperty();
-		UpdateIsPawnFalling();
-		UpdateWeapon();
-		UpdateYawPitch();
+		URPGCharacterMovementComponent* CharacterMovementComp = CastChecked<URPGCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
+		GroundDistance = CharacterMovementComp->GetGroundDistance();
+		//IsFight = OwningCharacter->IsFight;
 	}
-	
+
+
+
 }
 
 void URPGGameAnimInstance::NativeInitializeAnimation()
@@ -49,70 +49,49 @@ void URPGGameAnimInstance::NativeInitializeAnimation()
 	UE_LOG(LogTemp, Warning, TEXT("NativeInitializeAnimation"));
 
 	OwningCharacter = Cast<ARPGGameCharacter>(GetOwningActor());
-	if(OwningCharacter){
-		MovementComponent = OwningCharacter->GetCharacterMovement();
-
-		FRotator Delta_A = OwningCharacter->GetControlRotation();
-		FRotator Delta_B = OwningCharacter->GetActorRotation();
-		FRotator Delta_Rotator = UKismetMathLibrary::NormalizedDeltaRotator(Delta_A, Delta_B);
-
-		PitchAnim = Delta_Rotator.Pitch;
-		YawAnim = Delta_Rotator.Yaw;
-	}
-
-	SetBehavior(UAttackBehavior_Non::StaticClass());
-}
-
-
-void URPGGameAnimInstance::UpdateAnimProperty()
-{
-	//set velocity & direction
-	Velocity = MovementComponent->Velocity;
-	CurDirection= CalculateDirection(MovementComponent->Velocity, OwningCharacter->GetActorRotation());
-
-	//2D Size == vector length XY
-	CurrentPawnSpeed = Velocity.Size2D();
-
-	FVector Acceleration = MovementComponent->GetCurrentAcceleration();
-	if (Acceleration != FVector(0.0f, 0.0f, 0.0f) && CurrentPawnSpeed > 3.0f) {
-		ShouldMove = true;
-	}
-	else {
-		ShouldMove = false;
-	}
 
 }
 
-void URPGGameAnimInstance::UpdateIsPawnFalling()
-{
-	IsFaliing = MovementComponent->IsFalling();
-}
 
-void URPGGameAnimInstance::UpdateWeapon()
+void URPGGameAnimInstance::UpdateWeaponShield()
 {
+	/*bool Update*/
 	if (ARPGGamePlayerController* Controller = Cast<ARPGGamePlayerController>(OwningCharacter->GetController())) {
-		//UE_LOG(LogTemp, Warning, TEXT("URPGGameAnimInstance : UpdateWeapon"));
 		bEquipWeapon = Controller->UserMenuComp->IsEquipWeapon();
+		bEquipShield = Controller->UserMenuComp->IsEquipShield();
+	}
+
+	/*Anim Update*/
+	if (bEquipWeapon) {
+		if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
+			SetWeaponAnimData(CombatComponent->GetWeaponAnimData());
+		}
+	}
+	if (bEquipShield) {
+		if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
+			SetSheildAnimData(CombatComponent->GetShieldAnimData());
+		}
 	}
 
 	this->WeaponEnum = OwningCharacter->WeaponEnum;
 
 }
 
-void URPGGameAnimInstance::UpdateYawPitch()
+
+
+void URPGGameAnimInstance::SetWeaponAnimData(UBehaviorAnimData* NewAnimData)
 {
+	WeaponAnimData = NewAnimData;
+}
 
-	FRotator Delta_A = OwningCharacter->GetControlRotation();
-	FRotator Delta_B = OwningCharacter->GetActorRotation();
-	FRotator Target_Rotator = UKismetMathLibrary::NormalizedDeltaRotator(Delta_A, Delta_B);
+void URPGGameAnimInstance::SetSheildAnimData(UBehaviorAnimData* NewAnimData)
+{
+	ShieldAnimData = NewAnimData;
+}
 
-	FRotator Cur_Rotator = UKismetMathLibrary::MakeRotator(0.f, YawAnim, PitchAnim);
-
-	FRotator Result_Rotator = FMath::RInterpTo(Cur_Rotator, Target_Rotator, 1.f, 0.0f);
-
-	PitchAnim = Result_Rotator.Pitch;
-	YawAnim = Result_Rotator.Yaw;
-
+UBehaviorAnimData* URPGGameAnimInstance::GetCurBehavior()
+{
+	return bEquipWeapon ? WeaponAnimData : DefaultAnimData;
 }
 
 
@@ -120,13 +99,24 @@ void URPGGameAnimInstance::UpdateYawPitch()
 
 void URPGGameAnimInstance::PlayAttackMontage()
 {
-	Montage_Play(AttackBehavior->AttackMontage, 1.0f);
+	if (UBehaviorAnimData* CurBehavior = GetCurBehavior()) {
+		FAnimDataArray AttackMontage = CurBehavior->GetMontageList(EMontageCategory::Attack);
+		if (UAnimMontage* Montage = Cast<UAnimMontage>(AttackMontage.AnimAssetList[0])) {
+			Montage_Play(Montage, 1.0f);
+		}
+	}
 
 }
 
 void URPGGameAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
-	Montage_SetNextSection(GetAttackMontageSectionName(NewSection - 1), GetAttackMontageSectionName(NewSection), AttackBehavior->AttackMontage);
+	if (UBehaviorAnimData* CurBehavior = GetCurBehavior()) {
+		FAnimDataArray AttackMontage = CurBehavior->GetMontageList(EMontageCategory::Attack);
+		if (UAnimMontage* Montage = Cast<UAnimMontage>(AttackMontage.AnimAssetList[0])) {
+			Montage_SetNextSection(GetAttackMontageSectionName(NewSection - 1), GetAttackMontageSectionName(NewSection), Montage);
+		}
+	}
+
 }
 
 void URPGGameAnimInstance::AnimNotify_AttackHitNotify()
@@ -143,46 +133,47 @@ void URPGGameAnimInstance::AnimNotify_NextAttackNotify()
 
 FName URPGGameAnimInstance::GetAttackMontageSectionName(int32 Section)
 {
-	return AttackBehavior->GetAttackMontageSectionName(Section);
+	UBehaviorAnimData* CurBehavior;
+	bEquipWeapon ? CurBehavior = WeaponAnimData : CurBehavior = DefaultAnimData;
+
+	return FName(*FString::Printf(TEXT("Attack%d"), Section));
+	//return AttackBehavior->GetAttackMontageSectionName(Section);
 }
 
 
 int32 URPGGameAnimInstance::GetMaxCombo()
 {
-	return AttackBehavior->MaxCombo;
-}
-
-void URPGGameAnimInstance::SetBehavior(TSubclassOf<UAttackBehavior> Behavior)
-{
-	AttackBehavior = NewObject<UAttackBehavior>(this, Behavior, FName(TEXT("Behavior")));
-	if (AttackBehavior) {
-		auto asd = AttackBehavior->MaxCombo;
-		UE_LOG(LogTemp, Warning, TEXT("BEHAVIOR SUCCEED"));
+	if (UBehaviorAnimData* CurBehavior = GetCurBehavior()) {
+		FAnimDataArray AttackMontage = CurBehavior->GetMontageList(EMontageCategory::Attack);
+		if (UAnimMontage* Montage = Cast<UAnimMontage>(AttackMontage.AnimAssetList[0])) {
+			return Montage->GetNumSections();
+		}
 	}
-	AttackBehavior->ParentAnimInstance = this;
 
+	return 1;
 }
+
 
 #pragma endregion 
 
 
 #pragma region Locomotion
 
-UAnimationAsset* URPGGameAnimInstance::GetAnimAsset(ULocomotionData* LocomotionData, ELocomotion LocomotionType, int32 Index)
+UAnimationAsset* URPGGameAnimInstance::GetAnimAsset(UBehaviorAnimData* BehaviorAnimData, ELocomotionCategory LocomotionType, int32 Index)
 {
-	if (LocomotionData == nullptr) {
+	if (BehaviorAnimData == nullptr) {
 		return nullptr;
 	}
 
-	if (FAnimDataArray* AnimDataArray = LocomotionData->LocomotionData.Find(LocomotionType)) {
+	if (FAnimDataArray* AnimDataArray = BehaviorAnimData->Locomotion->LocomotionAnimList.Find(LocomotionType)) {
 		if (AnimDataArray->AnimAssetList.IsValidIndex(Index)) {
 			return AnimDataArray->AnimAssetList[Index];
 		}
 	}
 
-
 	return nullptr;
 }
+
 
 #pragma region
 

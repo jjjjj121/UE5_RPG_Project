@@ -23,18 +23,6 @@ void UDamageNotify_Player::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSeq
 		if (ARPGGameCharacter* Player = Cast<ARPGGameCharacter>(MeshComp->GetOwner())) {
 			if (ARPGGamePlayerController* Controller = Cast<ARPGGamePlayerController>(Player->GetOwner())) {
 
-
-				if (Controller->UserMenuComp->IsEquipWeapon()) {
-
-					UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify_Player] : EQUIP WEAPON"));
-				}
-				else {
-					UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify_Player] : NOT EQUIP WEAPON"));
-				}
-
-
-
-
 				FVector StartPosition = MeshComp->GetSocketLocation(StartSocketName);
 				FVector EndPosition = MeshComp->GetSocketLocation(EndSocketName);
 

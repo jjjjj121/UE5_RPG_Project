@@ -84,7 +84,7 @@ void UW_MenuLayout::InitInventory(TMap<EItemCategoryType, FItemInstanceArray> _I
 	BP_W_Inventory->UpdateAllList(_Inventory, _ListMaxNum);
 }
 
-void UW_MenuLayout::InitEquipInventory(TMap<EEquipCategoryType, UItemInstance*> _EquipInventory)
+void UW_MenuLayout::InitEquipInventory(FEquipmentList _EquipInventory)
 {
 	BP_W_Equipment->UpdateAllList(_EquipInventory);
 }

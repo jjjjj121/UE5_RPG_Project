@@ -40,13 +40,15 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	virtual void Update(UItemInstance* NewItem);
 	void SetItemGrade(EItemGrade Grade);
 	void ThrowAwayItem(int32 Num = 1);
 	bool RemoveItem(int32 Num = 1);
 
-	void UseItem();
-	void EquipItem();
+public:
+	virtual void Update(UItemInstance* NewItem);
+	virtual void UseItem();
+	virtual void EquipItem();
+	virtual void UnEquipItem() {};
 
 private:
 	UFUNCTION()

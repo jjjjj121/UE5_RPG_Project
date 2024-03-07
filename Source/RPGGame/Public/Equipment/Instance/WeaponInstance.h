@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Equipment/EquipmentInstance.h"
+#include "Library/AnimEnumLibrary.h"
 #include "WeaponInstance.generated.h"
 
 class UBehaviorAnimData;
+class UAnimMontage;
 
 UCLASS()
 class RPGGAME_API UWeaponInstance : public UEquipmentInstance
@@ -19,6 +21,21 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UBehaviorAnimData* BehaviorAnim;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	TSubclassOf<UAnimInstance> EquipAnimLayer;
+
+	//UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	//FAnimLayerSelectSet EquippedAnimset;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* EquipAnim;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* UnEquipAnim;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* AttackAnim;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Info")

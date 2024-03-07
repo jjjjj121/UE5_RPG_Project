@@ -6,7 +6,17 @@
 #include "UserMenu/Inventory/ItemInstance.h"
 #include "UserMenu/Inventory/ItemDefinition.h"
 
+#include "UserMenu/Inventory/Fragments/ItemFragment_Equipment.h"
+
 #include "RPGGame/Structs.h"
+#include "Library/RPGFunctionLibrary.h"
+
+#include "RPGGame/RPGGamePlayerController.h"
+#include "RPGGame/RPGGameCharacter.h"
+#include "RPGGame/RPGGameAnimInstance.h"
+
+#include "UserMenu/AC_UserMenuComponent.h"
+#include "Component/PlayerCombatComponent.h"
 
 #include "Components/Image.h"
 #include "Components/Border.h"
@@ -26,6 +36,7 @@ void UW_EquipSlot::Update(UItemInstance* NewItem)
 	Super::Update(NewItem);
 
 	if (ItemInstance) {
+		UE_LOG(LogTemp, Warning, TEXT("[UW_EquipSlot] : Update"));
 		IMG_Item->SetBrushTintColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
 	}
 	else {
@@ -46,31 +57,57 @@ void UW_EquipSlot::InitDefault()
 	SetItemGrade(EItemGrade::None);
 }
 
-FReply UW_EquipSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+void UW_EquipSlot::UnEquipItem()
 {
-	FEventReply Reply;
+	//UE_LOG(LogTemp, Warning, TEXT("[UW_EquipSlot] : UNEUQIP ITEM"));
 
-	UE_LOG(LogTemp, Warning, TEXT("[UW_EquipSlot] :RIGHT MOUSE BUTTON DOWN"));
+	if (ARPGGamePlayerController* Controller = URPGFunctionLibrary::GetPlayerController(GetWorld())) {
+		if (UAC_UserMenuComponent* UserMenuComponent = Controller->FindComponentByClass<UAC_UserMenuComponent>()) {
+			if (Controller->UserMenuComp->UnEquipItem(Category)) {
+				
+				/*Animation Reset*/
+				ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld());
+				Character->SetAnimLayer(nullptr);
 
-	//Reply.NativeReply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+				//if (UPlayerCombatComponent* CombatComponent = Character->FindComponentByClass<UPlayerCombatComponent>()) {
+				//	CombatComponent->SetWeaponAnimData(nullptr);
+				//}
 
-	//if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) == true) {
-	//	if (ItemInstance != nullptr) {
-	//		if (ParentWidget->ParentWidget->RButtonMenuWidget == nullptr) {
 
-	//			UE_LOG(LogTemp, Warning, TEXT("RIGHT MOUSE BUTTON DOWN"));
-	//			URPGUserWidgetBase* NewWidget = CreateWidget<URPGUserWidgetBase>(this, RButtonWidget);
-	//			NewWidget->AddToViewport();
-	//			ParentWidget->ParentWidget->SetRButtonMenuWidget(NewWidget);
-	//		}
+				//URPGGameAnimInstance* AnimInstance = Cast<URPGGameAnimInstance>(Character->GetMesh()->GetAnimInstance());
+				//AnimInstance->SetEquipAnimData(nullptr);
 
-	//		APlayerController* Controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	//		FVector2D ViewportPosition;
-	//		Controller->GetMousePosition(ViewportPosition.X, ViewportPosition.Y);
+			}
+		}
+	}
 
-	//		ParentWidget->ParentWidget->RButtonMenuWidget->SetPositionInViewport(ViewportPosition);
-	//	}
-	//}
-
-	return Reply.NativeReply;
 }
+
+//FReply UW_EquipSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+//{
+//	FEventReply Reply;
+//
+//	UE_LOG(LogTemp, Warning, TEXT("[UW_EquipSlot] :RIGHT MOUSE BUTTON DOWN"));
+//
+//	//Reply.NativeReply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+//
+//	//if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) == true) {
+//	//	if (ItemInstance != nullptr) {
+//	//		if (ParentWidget->ParentWidget->RButtonMenuWidget == nullptr) {
+//
+//	//			UE_LOG(LogTemp, Warning, TEXT("RIGHT MOUSE BUTTON DOWN"));
+//	//			URPGUserWidgetBase* NewWidget = CreateWidget<URPGUserWidgetBase>(this, RButtonWidget);
+//	//			NewWidget->AddToViewport();
+//	//			ParentWidget->ParentWidget->SetRButtonMenuWidget(NewWidget);
+//	//		}
+//
+//	//		APlayerController* Controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+//	//		FVector2D ViewportPosition;
+//	//		Controller->GetMousePosition(ViewportPosition.X, ViewportPosition.Y);
+//
+//	//		ParentWidget->ParentWidget->RButtonMenuWidget->SetPositionInViewport(ViewportPosition);
+//	//	}
+//	//}
+//
+//	return Reply.NativeReply;
+//}

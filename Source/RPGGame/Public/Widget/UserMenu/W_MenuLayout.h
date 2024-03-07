@@ -14,8 +14,10 @@ class UButton;
 class UW_Inventory;
 class UW_Equipment;
 class UItemInstance;
+class UEquipmentInstance;
 
 struct FItemInstanceArray;
+struct FEquipmentList;
 
 /**
  * 
@@ -62,7 +64,7 @@ private:
 public:
 	void ShowMenu(EUserMenuType ShowMenu);
 	void InitInventory(TMap<EItemCategoryType, FItemInstanceArray> _Inventory, TMap<EItemCategoryType, int32> _ListMaxNum);
-	void InitEquipInventory(TMap<EEquipCategoryType, UItemInstance*> _EquipInventory);
+	void InitEquipInventory(FEquipmentList _EquipInventory);
 
 private:
 	TMap<EUserMenuType, URPGUserWidgetBase*> UserMenuWidgets;

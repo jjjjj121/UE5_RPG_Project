@@ -19,8 +19,7 @@ class RPGGAME_API UItemFragment_Equipment : public UItemFragment
 public:
 	UItemFragment_Equipment();
 
-	float TestNUm;
 public:
+	/*Equip Item*/
 	virtual bool OnUseItem(UItemInstance* _Instance) const override;
-
 };

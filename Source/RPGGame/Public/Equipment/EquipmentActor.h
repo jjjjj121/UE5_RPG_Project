@@ -21,6 +21,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* StaticMesh;
 
+	UPROPERTY(EditAnywhere)
+	USceneComponent* Root;
+
+	UPROPERTY(EditAnywhere)
+	UMeshComponent* TEST;
+
+	UPROPERTY(EditAnywhere)
+	bool IsRootSkeletal;
+
 public:
 	UPROPERTY(EditAnywhere)
 	FString ItemID;
@@ -28,7 +37,12 @@ public:
 public:
 	AEquipmentActor();
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	UMeshComponent* GetMesh() const;
+
+	void SetID(FString NewID);
 
 };

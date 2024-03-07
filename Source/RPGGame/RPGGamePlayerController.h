@@ -5,11 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerDefinition.h"
+
+#include "Components/TimelineComponent.h"
+
 #include "RPGGamePlayerController.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class RPGGAME_API ARPGGamePlayerController : public APlayerController
 {
@@ -25,7 +26,8 @@ private:
 	class ARPGGameHUD* HUD;
 
 protected:
-
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	virtual void OnPossess(APawn* NewPawn) override;
@@ -91,5 +93,24 @@ private:
 public:
 	void SetWheelType(EWheelType NewType) { WheelType = NewType; }
 #pragma endregion
+
+
+protected:
+	FTimeline Timeline;
+
+	UPROPERTY(EditDefaultsOnly)
+	UCurveFloat* FloatCurve;
+
+	FRotator CameraRotation;
+
+public:
+	UFUNCTION()
+	void OnTimelineUpdate();
+	UFUNCTION()
+	void OnTimelineFinished();
+
+	void RotateCameraFront();
+	void StartTurnTiemline();
+
 
 };

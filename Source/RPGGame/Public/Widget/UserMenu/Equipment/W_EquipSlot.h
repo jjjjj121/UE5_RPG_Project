@@ -16,7 +16,10 @@ class RPGGAME_API UW_EquipSlot : public UW_InventorySlot
 	
 public:
 	UPROPERTY(EditAnywhere)
-		UTexture2D* DefaultIcon;
+	UTexture2D* DefaultIcon;
+
+	UPROPERTY(EditAnywhere)
+	EEquipCategoryType Category;
 
 
 protected:
@@ -24,12 +27,14 @@ protected:
 
 public:
 	virtual void Update(UItemInstance* NewItem) override;
+	virtual void UnEquipItem() override;
 
 public:
 	virtual void OnClicked_Item() override;
 
 	void InitDefault();
 
+
 private:
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	//virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 };

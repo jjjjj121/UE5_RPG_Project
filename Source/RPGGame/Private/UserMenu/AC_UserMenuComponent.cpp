@@ -12,11 +12,147 @@
 #include "UserMenu/Inventory/ItemDefinition.h"
 
 #include "Equipment/EquipmentDefinition.h"
+#include "Equipment/EquipmentInstance.h"
 #include "Equipment/EquipmentActor.h"
+#include "Equipment/Instance/WeaponInstance.h"
+#include "Equipment/Instance/ShieldInstance.h"
+
+#include "System/RPGGameInstance.h"
 
 #include "RPGGame/RPGGameCharacter.h"
 
 #include "Kismet/GameplayStatics.h"
+
+
+FEquipmentList::FEquipmentList()
+{
+	OwnerComponent = nullptr;
+	InitEntries();
+}
+
+FEquipmentList::FEquipmentList(UActorComponent* OwnerComponent_)
+{
+	OwnerComponent = OwnerComponent_;
+	InitEntries();
+}
+
+void FEquipmentList::InitEntries()
+{
+	//Equip Entries 초기화
+	for (int i = 0; i <= static_cast<int>(EEquipCategoryType::NONE); i++) {
+		Entries.Add(static_cast<EEquipCategoryType>(i), FEquipmentEntry());
+	}
+}
+
+FEquipmentEntry FEquipmentList::SetNewEntry(TSubclassOf<UEquipmentDefinition> NewDefinition, FString ID)
+{
+	if (NewDefinition == nullptr) {
+		return FEquipmentEntry();
+	}
+
+	UEquipmentInstance* EquipmentInstance = nullptr;
+	const UEquipmentDefinition* EquipmentCDO = GetDefault<UEquipmentDefinition>(NewDefinition);
+
+	if (EquipmentCDO->InstanceType == nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("[FEquipmentList ^ SetNewEntry] :  Instance Type is nullptr. Check Data Table."))
+			return FEquipmentEntry();
+	}
+
+	EquipmentInstance = NewObject<UEquipmentInstance>(OwnerComponent->GetOwner(), EquipmentCDO->InstanceType);
+	EquipmentInstance->ItemID = ID;
+
+	FEquipmentEntry result;
+	result.Instance = EquipmentInstance;
+	result.EquipmentDefinition = NewDefinition;
+
+	return result;
+}
+
+UEquipmentInstance* FEquipmentList::AddEntry(EEquipCategoryType EquipSlotCategory, FEquipmentEntry NewEntry)
+{
+	if (NewEntry.Instance == nullptr) {
+		return nullptr;
+	}
+
+	if (EquipSlotCategory == EEquipCategoryType::NONE) {
+		return nullptr;
+	}
+
+	Entries[EquipSlotCategory] = NewEntry;
+	const UEquipmentDefinition* equipmentCDO = GetDefault<UEquipmentDefinition>(Entries[EquipSlotCategory].EquipmentDefinition);
+
+	/*Spawn Equipment Actor*/
+	Entries[EquipSlotCategory].Instance->SpawnEquipmentActor(equipmentCDO->ActorToSpawn);
+
+	return Entries[EquipSlotCategory].Instance;
+}
+
+bool FEquipmentList::RemoveEntry(EEquipCategoryType EquipSlotCategory)
+{
+	FEquipmentEntry& Entry = Entries[EquipSlotCategory];
+
+	Entry.Instance->DestroyEquipmentActor();
+
+	Entry.EquipmentDefinition = nullptr;
+	Entry.Instance = nullptr;
+
+	return true;
+}
+
+EEquipCategoryType FEquipmentList::CheckCategory(FEquipmentEntry NewEntry)
+{
+	if (NewEntry.Instance == nullptr) {
+		return EEquipCategoryType::NONE;
+	}
+
+	EEquipmentType EquipType = NewEntry.Instance->GetEquipmentType();
+	EEquipCategoryType result = EEquipCategoryType::NONE;
+
+	switch (EquipType)
+	{
+	case EEquipmentType::WEAPON:
+		UE_LOG(LogTemp, Warning, TEXT("Equip Category Is WEAPON"));
+		result = EEquipCategoryType::MAINWEAPON;
+		break;
+	case EEquipmentType::SHIELD:
+		UE_LOG(LogTemp, Warning, TEXT("Equip Category Is SHIELD"));
+		result = EEquipCategoryType::SUBWEAPON;
+		break;
+	case EEquipmentType::ARROW:
+		result = EEquipCategoryType::ARROW;
+		break;
+	case EEquipmentType::HEAD:
+		result = EEquipCategoryType::HEAD;
+		break;
+	case EEquipmentType::TOP:
+		result = EEquipCategoryType::TOP;
+		break;
+	case EEquipmentType::PANTS:
+		result = EEquipCategoryType::PANTS;
+		break;
+	case EEquipmentType::GLOVES:
+		result = EEquipCategoryType::GLOVES;
+		break;
+	case EEquipmentType::SHOES:
+		result = EEquipCategoryType::SHOES;
+		break;
+	case EEquipmentType::SUBITEMS:
+		result = EEquipCategoryType::SUBITEMS1;
+		break;
+	case EEquipmentType::MAX:
+		break;
+	default:
+		break;
+	}
+
+
+
+	return result;
+}
+
+
+//-------------------------------------------------------------------------------------------------------------------------------
+//UserMenu Componet
 
 #pragma region Inventory
 
@@ -44,9 +180,8 @@ UAC_UserMenuComponent::UAC_UserMenuComponent()
 	}
 
 	//Equip Inventory 초기화
-	for (int i = 0; i <= static_cast<int>(EEquipCategoryType::NONE); i++) {
-		EquipInventory.Add(static_cast<EEquipCategoryType>(i), nullptr);
-	}
+
+	EquipmentInventory = FEquipmentList(this);
 
 }
 
@@ -55,9 +190,8 @@ void UAC_UserMenuComponent::ShowUserMenu(EUserMenuType MenuType)
 {
 	if (UW_MenuLayout* UserMenuWidget = Cast<UW_MenuLayout>(URPGWidgetFunctionLibrary::PushWidget(GetWorld(), EWidgetNames::Menu, EWidgetLayoutType::Option, EWidgetAnchorType::Fill))) {
 		UserMenuWidget->InitInventory(Inventory, ListMaxNum);
-		UserMenuWidget->InitEquipInventory(EquipInventory);
+		UserMenuWidget->InitEquipInventory(EquipmentInventory);
 		UserMenuWidget->ShowMenu(MenuType);
-
 	}
 
 }
@@ -72,6 +206,15 @@ void UAC_UserMenuComponent::HideUserMenu()
 		Controller->SetInputMode(FInputModeGameOnly());
 	}
 }
+
+void UAC_UserMenuComponent::RefreshInventories()
+{
+	if (UW_MenuLayout* UserMenuWidget = Cast<UW_MenuLayout>(URPGWidgetFunctionLibrary::GetWidgetWithLayoutType(GetWorld(), EWidgetLayoutType::Option, EWidgetNames::Menu))) {
+		UserMenuWidget->InitInventory(Inventory, ListMaxNum);
+		UserMenuWidget->InitEquipInventory(EquipmentInventory);
+	}
+}
+
 
 bool UAC_UserMenuComponent::AddItemToInventory(UItemInstance* NewItemInstance) {
 
@@ -96,11 +239,17 @@ bool UAC_UserMenuComponent::AddItemToInventory(UItemInstance* NewItemInstance) {
 			}
 		}
 		//그 외 아이템을 새로 추가하는 경우
+		ItemList->InstanceList.Add(NewItemInstance);
+
+		/*UI Update*/
+		RefreshInventories();
+
 		/*Item 획득 Pop up 실행(해야함)*/
 
-		ItemList->InstanceList.Add(NewItemInstance);
 		return true;
 	}
+
+
 
 	return false;
 }
@@ -124,11 +273,15 @@ bool UAC_UserMenuComponent::RemoveItemToInventory(UItemInstance* NewItemInstance
 						ItemList->InstanceList.Remove(Item);
 					}
 
+					/*UI Update*/
+					RefreshInventories();
+
 					return true;
 				}
 			}
 		}
 	}
+
 
 	return false;
 }
@@ -137,104 +290,62 @@ bool UAC_UserMenuComponent::RemoveItemToInventory(UItemInstance* NewItemInstance
 
 #pragma region Equipment
 
-bool UAC_UserMenuComponent::EquipItem(UEquipmentDefinition* EquipDef, UItemInstance* NewEquipItem)
+UEquipmentInstance* UAC_UserMenuComponent::EquipItem(TSubclassOf<UEquipmentDefinition> EquipmentClass, FString ID)
 {
-	FItemData ItemData = NewEquipItem->ItemDefinition->GetItemData();
-	bool Result = false;
 
-	switch (EquipDef->EquipCategory)
-	{
-	case EEquipCategoryType::MAINWEAPON:
-		if (ItemData.IsDualWield) {
-			UnEquipItem(EEquipCategoryType::SUBWEAPON);
-		}
-		break;
-	case EEquipCategoryType::SUBWEAPON:
-		if (EquipInventory[EEquipCategoryType::MAINWEAPON] != nullptr) {
-			FItemData MainWeaponItemData = EquipInventory[EEquipCategoryType::MAINWEAPON]->ItemDefinition->GetItemData();
-			if (MainWeaponItemData.IsDualWield) {
-				UnEquipItem(EEquipCategoryType::MAINWEAPON);
-			}
-		}
-		break;
-	case EEquipCategoryType::ARROW:
-		break;
-	case EEquipCategoryType::HEAD:
-		break;
-	case EEquipCategoryType::TOP:
-		break;
-	case EEquipCategoryType::PANTS:
-		break;
-	case EEquipCategoryType::GLOVES:
-		break;
-	case EEquipCategoryType::SHOES:
-		break;
-	case EEquipCategoryType::SUBITEMS1:
-		break;
-	case EEquipCategoryType::SUBITEMS2:
-		break;
-	case EEquipCategoryType::NONE:
-		break;
-	default:
-		break;
-	}
-
-	EquipInventory[EquipDef->EquipCategory] = NewEquipItem;
-
-	/*Item Spawn & Attach*/
-	if (EquipDef->ActorToSpawn.AttachSocket != "") {
-		
-
-		AEquipmentActor* NewItem = Cast<AEquipmentActor>(GetWorld()->SpawnActorDeferred<AActor>(EquipDef->ActorToSpawn.ActorToSpawn, EquipDef->ActorToSpawn.AttachTransform));
-		NewItem->ItemID = NewEquipItem->ItemID;
-		NewItem->FinishSpawning(EquipDef->ActorToSpawn.AttachTransform);
-
-		if (ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld())) {
-			NewItem->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), EquipDef->ActorToSpawn.AttachSocket);
-
-			Result = true;
-		}
+	if (EquipmentClass == nullptr) {
+		return nullptr;
 	}
 
 
-	/*Equip Widget Update*/
-	if (UW_MenuLayout* UserMenuWidget = Cast<UW_MenuLayout>(URPGWidgetFunctionLibrary::GetWidgetWithLayoutType(GetWorld(), EWidgetLayoutType::Option, EWidgetNames::Menu))) {
-		UserMenuWidget->InitEquipInventory(EquipInventory);
-	}
+	UEquipmentInstance* equipmentInstance = nullptr;
+
+	/*새로 등록할 Entry 가져오기 (등록 x)*/
+	FEquipmentEntry NewEntry = EquipmentInventory.SetNewEntry(EquipmentClass, ID);
+	/*Equip Slot Category 계산 후 가져오기*/
+	EEquipCategoryType Category = EquipmentInventory.CheckCategory(NewEntry);
+	/*가져온 정보를 토대로 EquipInventory에 최종 등록하기*/
+	equipmentInstance = EquipmentInventory.AddEntry(Category, NewEntry);
 
 
+	return equipmentInstance;
 
-	return Result;
 }
 
 bool UAC_UserMenuComponent::UnEquipItem(EEquipCategoryType Category)
 {
+	TMap<EEquipCategoryType, FEquipmentEntry> entries = EquipmentInventory.GetEntries();
 
-	UItemInstance* UnEquipInstance = *EquipInventory.Find(Category);
-	if (UnEquipInstance != nullptr) {
-		AddItemToInventory(UnEquipInstance);
-		EquipInventory[Category] = nullptr;
+	if (UEquipmentInstance* PrevEquipInstance = entries[Category].Instance) {
+		if (EquipmentInventory.RemoveEntry(Category)) {
+			FItemTable* NewData = DATATABLE_MANAGER(GetWorld())->GetItemData(PrevEquipInstance->ItemID);
+			UItemInstance* NewIns = NewObject<UItemInstance>(this);
+			NewIns->InitInstance(PrevEquipInstance->ItemID);
+
+			AddItemToInventory(NewIns);
+
+			return true;
+		}
 	}
 
-	return true;
-}
-
-bool UAC_UserMenuComponent::SpawnAndAttach(UItemInstance* NewEquipItem)
-{
-	if (NewEquipItem) {
-
-	}
 	return false;
 }
 
+
+
 bool UAC_UserMenuComponent::IsEquipWeapon()
 {
-	return 	EquipInventory[EEquipCategoryType::MAINWEAPON] != nullptr;
+	return 	EquipmentInventory.Entries[EEquipCategoryType::MAINWEAPON].GetInstance() != nullptr;
+}
+
+bool UAC_UserMenuComponent::IsEquipShield()
+{
+	if (UShieldInstance* SubWeaponInstance = Cast<UShieldInstance>(EquipmentInventory.Entries[EEquipCategoryType::SUBWEAPON].GetInstance())) {
+		return true;
+	}
+
+	return false;
 }
 
 #pragma endregion
-
-
-
-
 

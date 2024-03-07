@@ -4,6 +4,7 @@
 #include "Equipment/EquipmentInstance.h"
 
 #include "RPGGame/RPGGameCharacter.h"
+#include "RPGGame/RPGGamePlayerController.h"
 
 #include "Equipment/EquipmentActor.h"
 #include "Equipment/EquipmentDefinition.h"
@@ -14,8 +15,9 @@ void UEquipmentInstance::SpawnEquipmentActor(const FEquipmentActorToSpawn& _Acto
 	{
 		return;
 	}
-
-	ARPGGameCharacter* owingCharacter = Cast<ARPGGameCharacter>(GetOuter());
+	
+	ARPGGamePlayerController* OwningController = Cast<ARPGGamePlayerController>(GetOuter());
+	ARPGGameCharacter* owingCharacter = Cast<ARPGGameCharacter>(OwningController->GetCharacter());
 
 	if (owingCharacter)
 	{
@@ -33,14 +35,15 @@ void UEquipmentInstance::SpawnEquipmentActor(const FEquipmentActorToSpawn& _Acto
 
 void UEquipmentInstance::DestroyEquipmentActor()
 {
-	if (SpawnedActor)
-	{
+	if (SpawnedActor){
 		SpawnedActor->Destroy();
 	}
+	
 }
 
 void UEquipmentInstance::OnEquipped()
 {
+	/*Stat update부분 들어가면 될 듯*/
 }
 
 void UEquipmentInstance::OnUnEquipped()

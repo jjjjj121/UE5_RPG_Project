@@ -3,31 +3,48 @@
 
 #include "Equipment/EquipmentActor.h"
 
+
 AEquipmentActor::AEquipmentActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	SkelMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
 	SkelMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SkelMesh->SetSimulatePhysics(false);
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StaticMesh->SetSimulatePhysics(false);
 
-	this->GetMesh()->SetSimulatePhysics(false);
-	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RootComponent = SkelMesh;
+	StaticMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+}
+
+
+void AEquipmentActor::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 UMeshComponent* AEquipmentActor::GetMesh() const
 {
 	UMeshComponent* meshComponent = nullptr;
-	if (SkelMesh)
+
+	if (SkelMesh->GetSkeletalMeshAsset())
 	{
 		meshComponent = SkelMesh;
 	}
-	else if (StaticMesh)
+	else if (StaticMesh->GetStaticMesh())
 	{
 		meshComponent = StaticMesh;
 	}
 
 	return meshComponent;
+}
+
+void AEquipmentActor::SetID(FString NewID)
+{
+	ItemID = NewID;
+
 }

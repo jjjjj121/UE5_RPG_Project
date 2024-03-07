@@ -55,9 +55,6 @@ private:
 	//Attack Animation
 public:
 	UPROPERTY()
-	class UAttackBehavior* AttackBehavior;
-
-	UPROPERTY()
 	class UMonsterData* BehaviorData;
 
 	//Animation

@@ -9,7 +9,9 @@
 
 class UW_EquipSlot;
 class UItemInstance;
+class UEquipmentInstance;
 struct FItemInstanceArray;
+struct FEquipmentList;
 
 /**
  * 
@@ -62,7 +64,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void UpdateAllList(TMap<EEquipCategoryType, UItemInstance*> _EquipInventory);
-	void UpdateSlot(UW_EquipSlot* TargetSlot, UItemInstance* ItemInstance);
+	void UpdateAllList(FEquipmentList _EquipInventory);
+	void UpdateSlot(UW_EquipSlot* TargetSlot, UEquipmentInstance* EquipInstance);
 
 };

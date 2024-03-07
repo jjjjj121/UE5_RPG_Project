@@ -24,6 +24,43 @@ ARPGGamePlayerController::ARPGGamePlayerController()
 
 	UserMenuComp = CreateDefaultSubobject<UAC_UserMenuComponent>(TEXT("UserMenu"));
 
+	PrimaryActorTick.bCanEverTick = true;
+
+	/*Attack Turn Curve*/
+	const ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("CurveFloat'/Game/Data/Curve/AttackTurn_Curve.AttackTurn_Curve'"));
+	if (Curve.Succeeded()) {
+		FloatCurve = Curve.Object;
+	}
+}
+
+void ARPGGamePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (FloatCurve != nullptr) {
+		/*Callback*/
+		FOnTimelineFloat CurveCallback;
+		FOnTimelineEvent LerpTimelineFinishedCallback;
+
+		/*Bind Callback*/
+		CurveCallback.BindUFunction(this, FName{ TEXT("OnTimelineUpdate") });
+		LerpTimelineFinishedCallback.BindUFunction(this, FName{ TEXT("OnTimelineFinished") });
+
+		Timeline.AddInterpFloat(FloatCurve, CurveCallback);
+		Timeline.SetTimelineFinishedFunc(LerpTimelineFinishedCallback);
+
+		float TimelineLength = 0.1f;
+		Timeline.SetTimelineLength(TimelineLength);
+
+		//Timeline.PlayFromStart();
+	}
+}
+
+void ARPGGamePlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	Timeline.TickTimeline(DeltaTime);
 }
 
 void ARPGGamePlayerController::OnPossess(APawn* NewPawn)
@@ -122,6 +159,7 @@ void ARPGGamePlayerController::OnAttack(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnAttack"));
 
 	if (PossessedPlayer) {
+		/*Attack*/
 		PossessedPlayer->Attack();
 	}
 }
@@ -176,5 +214,45 @@ void ARPGGamePlayerController::EnhancedInputMapping()
 		ListUpDownAction = IA_WheelUpDown.Object;
 	}
 
+}
 
+void ARPGGamePlayerController::OnTimelineUpdate()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("[ARPGGamePlayerController] : Curve Update"));
+	RotateCameraFront();
+}
+
+void ARPGGamePlayerController::OnTimelineFinished()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("[ARPGGamePlayerController] : Timeline Finished"));
+	CameraRotation = FRotator::ZeroRotator;
+}
+
+void ARPGGamePlayerController::RotateCameraFront()
+{
+
+	if (PossessedPlayer == nullptr || PlayerCameraManager == nullptr) {
+		return;
+	}
+
+	FRotator CharacterRotation = FRotator::ZeroRotator;
+	CharacterRotation.Yaw = PossessedPlayer->GetActorRotation().Yaw;
+
+	/*첫 Attack 클릭 시에 바라보고 있는 방향으로만 설정되도록 함*/
+	if (CameraRotation == FRotator::ZeroRotator) {
+		CameraRotation.Yaw = PlayerCameraManager->GetCameraRotation().Yaw;
+	}
+
+	float Delta = GetWorld()->GetDeltaSeconds();
+
+	//UE_LOG(LogTemp, Warning, TEXT("Delta Second : %f"), Delta);
+	
+	FRotator NewRotation = FMath::RInterpTo(CharacterRotation, CameraRotation, Delta, 8.f);
+	PossessedPlayer->SetActorRotation(NewRotation);
+}
+
+void ARPGGamePlayerController::StartTurnTiemline()
+{
+	/*Rotate Camera front*/
+	Timeline.PlayFromStart();
 }

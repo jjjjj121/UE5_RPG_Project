@@ -15,5 +15,5 @@ class RPGGAME_API ULocomotionData : public UPrimaryDataAsset
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<ELocomotion, FAnimDataArray> LocomotionData;
+	TMap<ELocomotionCategory, FAnimDataArray> LocomotionAnimList;
 };

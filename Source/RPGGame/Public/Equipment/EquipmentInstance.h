@@ -31,6 +31,9 @@ private:
 	EEquipmentType EquipmentType;
 
 public:
+	FString ItemID;
+
+public:
 	virtual void SpawnEquipmentActor(const FEquipmentActorToSpawn& _ActorToSpawn);
 	virtual void DestroyEquipmentActor();
 

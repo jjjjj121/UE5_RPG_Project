@@ -9,12 +9,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Interface/InteractionComponent.h"
+#include "Component/PlayerCombatComponent.h"
+#include "Component/RPGCharacterMovementComponent.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
 #include "RPGGameAnimInstance.h"
 #include "RPGGame/RPGGamePlayerState.h"
+#include "RPGGame/RPGGamePlayerController.h"
 #include "RPGGame/RPGGameHUD.h"
 #include "Engine/DamageEvents.h"
 
@@ -28,7 +31,16 @@
 //////////////////////////////////////////////////////////////////////////
 // ARPGGameCharacter
 
-ARPGGameCharacter::ARPGGameCharacter()
+void ARPGGameCharacter::SetAnimLayer(TSubclassOf<UAnimInstance> NewAnimLayer)
+{
+	TSubclassOf<UAnimInstance> AnimLayer = NewAnimLayer != nullptr ? NewAnimLayer : DefaultAnimLayer;
+	GetMesh()->LinkAnimClassLayers(AnimLayer);
+	
+}
+
+ARPGGameCharacter::ARPGGameCharacter(const class FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<URPGCharacterMovementComponent>(CharacterMovementComponentName)),
+	MovementType(EPlayerMovementType::Normal)
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -69,7 +81,12 @@ ARPGGameCharacter::ARPGGameCharacter()
 	AttackEndComboState();
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
+
+	CombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
 	
+	/*Input Mapping*/
+	EnhancedInputMapping();
+
 
 }
 
@@ -82,6 +99,7 @@ void ARPGGameCharacter::BeginPlay()
 	Tags.Add(FName(TEXT("Player")));
 
 	//Add Input Mapping Context
+
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -95,6 +113,8 @@ void ARPGGameCharacter::BeginPlay()
 
 	/*Anim Instance Init*/
 	AnimInstance = Cast<URPGGameAnimInstance>(GetMesh()->GetAnimInstance());
+	GetMesh()->LinkAnimClassLayers(DefaultAnimLayer);
+
 
 	AnimInstance->OnMontageEnded.AddDynamic(this, &ARPGGameCharacter::OnAttackMontageEnded);
 	
@@ -104,6 +124,7 @@ void ARPGGameCharacter::BeginPlay()
 		if (IsComboInputOn) {
 			AttackStartComboState();
 			AnimInstance->JumpToAttackMontageSection(CurrentCombo);	//다음 콤보 Montage로 switching
+			TurnAttack();
 			//UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
 		}
 		});
@@ -114,33 +135,7 @@ void ARPGGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-	//FVector StartPoint = Camera->GetCameraLocation();
-	//FVector EndPoint = (UKismetMathLibrary::GetForwardVector(Camera->GetCameraRotation()) * 500.f) + StartPoint;
-	//
-	//const FName TraceTag("DebugTraceTag");
 
-	//GetWorld()->DebugDrawTraceTag = TraceTag;
-
-	//FCollisionQueryParams CollisionParams;
-	//CollisionParams.TraceTag = TraceTag;
-	//CollisionParams.AddIgnoredActor(this);
-
-	//FHitResult HitResult;
-
-	//HUD->bRootItem = false;
-
-	//if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECollisionChannel::ECC_Visibility, CollisionParams)) {
-	//	IInteractionInterface* InteractionActor = Cast<IInteractionInterface>(HitResult.GetActor());
-	//	if (InteractionActor && InteractionActor->IsAvailableInteraction()) {
-	//		HUD->SetRootItemList(InteractionActor->GetRootItemList());
-	//		HUD->bRootItem = true;
-	//	}
-	//}
-	//HUD->CheckRoot();
-	
-
-	//DrawDebugLine(GetWorld(), StartPoint, EndPoint, IsHit ? FColor(255, 0, 0) : FColor(0, 255, 0),false, 1, 0, 0.5f);
 
 }
 
@@ -211,8 +206,10 @@ void ARPGGameCharacter::Attack()
 	}
 	//첫 Attack 콤보인 경우
 	else {
+		UnCrouch();
 		AttackStartComboState();
 		AnimInstance->PlayAttackMontage();	//Montage 실행
+		TurnAttack();
 		IsAttacking = true;
 	}
 }
@@ -262,6 +259,31 @@ float ARPGGameCharacter::GetDamage()
 	return -1.f;
 }
 
+void ARPGGameCharacter::TurnAttack()
+{
+	if (ARPGGamePlayerController* PlayerController = Cast<ARPGGamePlayerController>(Controller)) {
+		PlayerController->StartTurnTiemline();
+	}
+}
+
+//void ARPGGameCharacter::SetFightStance(bool NewStance)
+//{
+//	IsFight = NewStance;
+//
+//	if (IsFight == true) {
+//
+//		UE_LOG(LogTemp, Warning, TEXT("On Fight Stance : Start"));
+//
+//		GetWorld()->GetTimerManager().SetTimer(
+//			OnFightTimerHandle,
+//			FTimerDelegate::CreateLambda([this]() {
+//				UE_LOG(LogTemp, Warning, TEXT("On Fight Stance : Timer"));
+//				IsFight = false;
+//				}), 10.f, false);
+//	}
+//
+//
+//}
 
 void ARPGGameCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
@@ -273,7 +295,11 @@ void ARPGGameCharacter::AttackStartComboState()
 {
 	CanNextCombo = true;
 	IsComboInputOn = false;
+	//SetFightStance(true);
+	AnimInstance->SetIsFight(true);
 	CurrentCombo = FMath::Clamp<int32>(CurrentCombo +1, 1, AnimInstance->GetMaxCombo());
+
+
 }
 
 void ARPGGameCharacter::AttackEndComboState()
@@ -292,7 +318,7 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
@@ -300,6 +326,18 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::Look);
+
+		//Crouching
+		//EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ARPGGameCharacter::OnCrouch);
+
+		//Walk
+		EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnWalk);
+
+		//Sprint
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnSprint);
+
+		//Equip
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnEquip);
 	}
 
 }
@@ -340,6 +378,91 @@ void ARPGGameCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+
+
+//void ARPGGameCharacter::OnCrouch(const FInputActionValue& Value)
+//{
+//	if (const URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
+//
+//		if (bIsCrouched || MyMoveComp->bWantsToCrouch) {
+//			UnCrouch();
+//		}
+//		else if (MyMoveComp->IsMovingOnGround()) {
+//			Crouch();
+//		}
+//	}
+//	//UE_LOG(LogTemp, Warning, TEXT("CROUCH"));
+//}
+
+void ARPGGameCharacter::OnWalk(const FInputActionValue& Value)
+{
+	if (URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
+		if (MovementType != EPlayerMovementType::Walk) {
+			MyMoveComp->MaxWalkSpeed = 200.f;
+			MovementType = EPlayerMovementType::Walk;
+		}
+		else {
+			MyMoveComp->MaxWalkSpeed = 400.f;
+			MovementType = EPlayerMovementType::Normal;
+		}
+	}
+
+}
+
+void ARPGGameCharacter::OnSprint(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("VALUE : %f"), Value.Get<float>());
+	
+	if (URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
+		if (Value.Get<float>() > 0.f) {
+			MyMoveComp->MaxWalkSpeed = 600.f;
+			MovementType = EPlayerMovementType::Sprint;
+		}
+		else {
+			MyMoveComp->MaxWalkSpeed = 400.f;
+			MovementType = EPlayerMovementType::Normal;
+		}
+
+	}
+
+}
+
+void ARPGGameCharacter::OnEquip(const FInputActionValue& Value)
+{
+	
+
+}
+
+void ARPGGameCharacter::OnJump()
+{
+	UnCrouch();
+	Jump();
+}
+
+
+void ARPGGameCharacter::EnhancedInputMapping()
+{
+	//static ConstructorHelpers::FObjectFinder<UInputAction>IA_Crouch(TEXT("/Game/ThirdPerson/Input/Actions/IA_Crouch.IA_Crouch"));
+	//if (IA_Crouch.Succeeded()) {
+	//	CrouchAction = IA_Crouch.Object;
+	//}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Walk(TEXT("/Game/ThirdPerson/Input/Actions/IA_Walk.IA_Walk"));
+	if (IA_Walk.Succeeded()) {
+		WalkAction = IA_Walk.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Sprint(TEXT("/Game/ThirdPerson/Input/Actions/IA_Sprint.IA_Sprint"));
+	if (IA_Sprint.Succeeded()) {
+		SprintAction = IA_Sprint.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Equip(TEXT("/Game/ThirdPerson/Input/Actions/IA_Sprint.IA_Sprint"));
+	if (IA_Equip.Succeeded()) {
+		EquipAction = IA_Equip.Object;
 	}
 }
 

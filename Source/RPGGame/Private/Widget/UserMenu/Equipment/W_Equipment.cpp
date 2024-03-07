@@ -5,9 +5,16 @@
 
 #include "Widget/UserMenu/Equipment/W_State.h"
 #include "Widget/UserMenu/Equipment/W_EquipSlot.h"
+
 #include "Library/RPGFunctionLibrary.h"
 
 #include "UserMenu/Inventory/ItemInstance.h"
+#include "UserMenu/Inventory/ItemDefinition.h"
+
+#include "UserMenu/AC_UserMenuComponent.h"
+#include "Equipment/EquipmentInstance.h"
+
+#include "System/RPGGameInstance.h"
 
 #include "RPGGame/RPGGamePlayerState.h"
 
@@ -31,24 +38,35 @@ void UW_Equipment::NativeConstruct()
 
 }
 
-void UW_Equipment::UpdateAllList(TMap<EEquipCategoryType, UItemInstance*> _EquipInventory)
+void UW_Equipment::UpdateAllList(FEquipmentList _EquipInventory)
 {
-	for (auto& i : _EquipInventory) {
+	for (auto& i : _EquipInventory.GetEntries()) {
 		if (EquipSlotList.Contains(i.Key)) {
 			UW_EquipSlot* TargetSlot = *EquipSlotList.Find(i.Key);
 			if (TargetSlot) {
-				UpdateSlot(TargetSlot, i.Value);
+				auto a = i.Value;
+				
+				UpdateSlot(TargetSlot, i.Value.GetInstance());
 				//UE_LOG(LogTemp, Warning, TEXT("[UW_Equipment] : UpdateAllList"));
 			}
 		}
 	}
 }
 
-void UW_Equipment::UpdateSlot(UW_EquipSlot* TargetSlot, UItemInstance* ItemInstance)
+void UW_Equipment::UpdateSlot(UW_EquipSlot* TargetSlot, UEquipmentInstance* EquipInstance)
 {
-	if (ItemInstance) {
+	if (EquipInstance) {
+		
+		FItemTable* NewData = DATATABLE_MANAGER(GetWorld())->GetItemData(EquipInstance->ItemID);
+
+		UItemInstance* ItemInstance = NewObject<UItemInstance>(this);
+		ItemInstance->InitInstance(EquipInstance->ItemID);
 		TargetSlot->Update(ItemInstance);
-		UE_LOG(LogTemp, Warning, TEXT("[UW_Equipment] : UpdateSlot"));
+
+		//UE_LOG(LogTemp, Warning, TEXT("[UW_Equipment] : UpdateSlot"));
+	}
+	else {
+		TargetSlot->Update(nullptr);
 	}
 
 }

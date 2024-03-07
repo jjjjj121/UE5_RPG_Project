@@ -4,19 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+
+#include "Library/AnimEnumLibrary.h"
+
 #include "BehaviorAnimData.generated.h"
 
-class UAnimData;
 class ULocomotionData;
+class UMontageData;
 
-UENUM(BlueprintType)
-enum class EBehaviorCategory : uint8
-{
-	Default,
-	Attack,
-	React,
-	Death,
-};
 
 /*캐릭터의 모든 행동에 대한 Animation을 저장하는 DataAsset*/
 /*Locomotion 부터 Attack, React와 같은 Montage Play까지 사용되는 Animation 데이터*/
@@ -29,5 +24,12 @@ class RPGGAME_API UBehaviorAnimData : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion Anim")
 	ULocomotionData* Locomotion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage Play Anim")
+	UMontageData* Montage;
+
+public:
+	FAnimDataArray GetLocomotionList(ELocomotionCategory Category);
+	FAnimDataArray GetMontageList(EMontageCategory Category);
 
 };

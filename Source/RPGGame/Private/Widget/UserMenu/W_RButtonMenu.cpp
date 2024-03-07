@@ -14,6 +14,7 @@
 #include "Library/WidgetEnumLibrary.h"
 
 #include "Widget/UserMenu/Inventory/W_InventorySlot.h"
+#include "Widget/UserMenu/Equipment/W_EquipSlot.h"
 
 #include "UserMenu/Inventory/ItemDefinition.h"
 #include "UserMenu/Inventory/Fragments/ItemFragment_Consume.h"
@@ -25,14 +26,21 @@ void UW_RButtonMenu::ShowButtonMenu(FWidgetParam WidgetParam)
 	UItemDefinition* ItemDef = Cast<UItemDefinition>(WidgetParam.ObjectParam);
 
 	InitChild();
+	
+	if (TargetSlot->IsA(UW_EquipSlot::StaticClass())) {
+		UE_LOG(LogTemp, Warning, TEXT("EQUIP SLOT RIGHT BUUTTON"));
+		AddSlot(EButtonMenuType::UnEquip);
 
-	if (ItemDef->FindFragmentByClass(UItemFragment_Equipment::StaticClass())) {
-		AddSlot(EButtonMenuType::Equip);
 	}
-	if (ItemDef->FindFragmentByClass(UItemFragment_Consume::StaticClass())) {
-		AddSlot(EButtonMenuType::Use);
+	else {
+		if (ItemDef->FindFragmentByClass(UItemFragment_Equipment::StaticClass())) {
+			AddSlot(EButtonMenuType::Equip);
+		}
+		if (ItemDef->FindFragmentByClass(UItemFragment_Consume::StaticClass())) {
+			AddSlot(EButtonMenuType::Use);
+		}
+		AddSlot(EButtonMenuType::ThrowAway);
 	}
-	AddSlot(EButtonMenuType::ThrowAway);
 
 	SetMousePosition();
 }

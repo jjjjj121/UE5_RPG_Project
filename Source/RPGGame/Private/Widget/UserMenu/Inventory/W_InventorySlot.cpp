@@ -9,6 +9,10 @@
 #include "UserMenu/Inventory/Fragments/ItemFragment_Consume.h"
 #include "UserMenu/Inventory/Fragments/ItemFragment_Equipment.h"
 
+#include "UserMenu/AC_UserMenuComponent.h"
+
+#include "RPGGame/RPGGamePlayerController.h"
+
 #include "Widget/UserMenu/Inventory/W_Inventory.h"
 #include "Widget/UserMenu/W_MenuLayout.h"
 
@@ -103,7 +107,7 @@ void UW_InventorySlot::ThrowAwayItem(int32 Num)
 bool UW_InventorySlot::RemoveItem(int32 Num)
 {
 	if (ParentWidget->RemoveItem(ItemInstance, Num)) {
-		ItemInstance->ItemStack ? Update(ItemInstance), ParentWidget->UpdateSelectItem(ItemInstance) : Update(nullptr), ParentWidget->UpdateSelectItem(nullptr);
+
 		return true;
 	}
 
@@ -115,12 +119,11 @@ void UW_InventorySlot::UseItem()
 {
 	if (ItemInstance) {
 		for (UItemFragment* Fragment : ItemInstance->ItemDefinition->Fragments) {
-			if (Cast<UItemFragment_Consume>(Fragment)) {
+			if (Fragment->IsA(UItemFragment_Consume::StaticClass())) {
 				Fragment->OnUseItem(ItemInstance);
+				RemoveItem();
 			}
 		}
-
-		RemoveItem();
 	}
 }
 
@@ -128,13 +131,11 @@ void UW_InventorySlot::EquipItem()
 {
 	if (ItemInstance) {
 		for (UItemFragment* Fragment : ItemInstance->ItemDefinition->Fragments) {
-			if (UItemFragment_Equipment* a = Cast<UItemFragment_Equipment>(Fragment)) {
-				UE_LOG(LogTemp, Warning, TEXT("TestNum : %f"), a->TestNUm);
+			if (Fragment->IsA(UItemFragment_Equipment::StaticClass())) {
 				Fragment->OnUseItem(ItemInstance);
+				RemoveItem();
 			}
 		}
-
-		RemoveItem();
 	}
 }
 

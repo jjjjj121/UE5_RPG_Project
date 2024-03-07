@@ -41,9 +41,6 @@ public:
 	TSubclassOf<UEquipmentInstance> InstanceType;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-	EEquipCategoryType EquipCategory = EEquipCategoryType::NONE;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 	FEquipmentActorToSpawn ActorToSpawn;
 
 };
