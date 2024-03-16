@@ -432,7 +432,7 @@ void ARPGGameCharacter::OnSprint(const FInputActionValue& Value)
 
 void ARPGGameCharacter::OnEquip(const FInputActionValue& Value)
 {
-	
+	UE_LOG(LogTemp, Warning, TEXT("OnEquip"));
 
 }
 
