@@ -27,8 +27,9 @@ void UEquipmentInstance::SpawnEquipmentActor(const FEquipmentActorToSpawn& _Acto
 		if (SpawnedActor)
 		{
 			SpawnedActor->FinishSpawning(FTransform::Identity, true);
-			SpawnedActor->SetActorRelativeTransform(_ActorToSpawn.AttachTransform);
-			SpawnedActor->AttachToComponent(attachTarget, FAttachmentTransformRules::KeepRelativeTransform, _ActorToSpawn.AttachSocket);
+			//SpawnedActor->SetActorRelativeTransform(_ActorToSpawn.AttachTransform, false, nullptr, ETeleportType::TeleportPhysics);
+			SpawnedActor->SetActorTransform(_ActorToSpawn.AttachTransform);
+			SpawnedActor->AttachToComponent(attachTarget, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), _ActorToSpawn.AttachSocket);
 		}
 	}
 }

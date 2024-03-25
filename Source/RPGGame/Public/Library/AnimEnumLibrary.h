@@ -44,11 +44,28 @@ struct FAnimLayerSelectSet
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (TitleProperty = Layer))
-	TSubclassOf<UAnimInstance> LayerRule;
+	TSubclassOf<UAnimInstance> EquipAnimLayer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UAnimInstance> DefaultLayer;
 
 public:
-	TSubclassOf<UAnimInstance> SelectBestLayer() const { return LayerRule != nullptr ? LayerRule : DefaultLayer; }
+	TSubclassOf<UAnimInstance> SelectBestLayer() const { return EquipAnimLayer != nullptr ? EquipAnimLayer : DefaultLayer; }
+};
+
+USTRUCT(BlueprintType)
+struct FAnimMontageSet
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* EquipAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* UnEquipAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* AttackAnim;
+
 };

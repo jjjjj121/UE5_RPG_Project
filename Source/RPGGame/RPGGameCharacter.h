@@ -57,6 +57,18 @@ class ARPGGameCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* EquipAction;
 
+	/** Guard Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* GuardAction;
+
+	/** LockOn Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* LockOnAction;
+
+
+
+
+
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class ARPGGameHUD* HUD;
 
@@ -114,6 +126,14 @@ protected:
 	/** Called for Sprint input */
 	UFUNCTION()
 	void OnEquip(const FInputActionValue& Value);
+
+	/** Called for Sprint input */
+	UFUNCTION()
+	void OnGuard(const FInputActionValue& Value);
+
+	/** Called for Sprint input */
+	UFUNCTION()
+	void OnLockOn(const FInputActionValue& Value);
 
 
 	UFUNCTION()

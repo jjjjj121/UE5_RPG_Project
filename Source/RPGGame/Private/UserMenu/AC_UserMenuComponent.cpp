@@ -332,6 +332,21 @@ bool UAC_UserMenuComponent::UnEquipItem(EEquipCategoryType Category)
 }
 
 
+void UAC_UserMenuComponent::OnHandedWeapon()
+{
+	if (IsEquipWeapon()) {
+		if (UWeaponInstance* WeaponInstance = Cast<UWeaponInstance>(EquipmentInventory.Entries[EEquipCategoryType::MAINWEAPON].GetInstance())) {
+			bool EquipMotion = !bWeaponHanded;
+
+			if (!WeaponInstance->IsPlayingEquipMontage()) {
+				WeaponInstance->OnHanded(EquipMotion);
+				bWeaponHanded = !bWeaponHanded;
+			}
+		}
+	}
+}
+
+
 
 bool UAC_UserMenuComponent::IsEquipWeapon()
 {

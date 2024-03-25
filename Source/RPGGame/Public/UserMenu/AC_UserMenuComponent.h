@@ -120,9 +120,13 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	FEquipmentList EquipmentInventory;
 
+	bool bWeaponHanded;
+
 public:
 	UEquipmentInstance* EquipItem(TSubclassOf<UEquipmentDefinition> EquipmentClass, FString ID);
 	bool UnEquipItem(EEquipCategoryType Category);
+
+	void OnHandedWeapon();
 
 	bool IsEquipWeapon();
 	bool IsEquipShield();

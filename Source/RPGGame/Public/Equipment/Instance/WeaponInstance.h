@@ -25,17 +25,22 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	TSubclassOf<UAnimInstance> EquipAnimLayer;
 
-	//UPROPERTY(EditDefaultsOnly, Category = "Anim")
-	//FAnimLayerSelectSet EquippedAnimset;
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	FAnimLayerSelectSet EquippedLayerset;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
-	UAnimMontage* EquipAnim;
+	FAnimMontageSet EquippedMontageset;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Anim")
-	UAnimMontage* UnEquipAnim;
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "SocketName")
+	FName EquipSocket;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Anim")
-	UAnimMontage* AttackAnim;
+	UPROPERTY(EditDefaultsOnly, Category = "SocketName")
+	FName UnEquipSocket;
+
+private:
+	bool bIsPlayingEquipMontage;
+	bool bEquiped;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Info")
@@ -47,8 +52,16 @@ public:
 	virtual void OnEquipped() override;
 	virtual void OnUnEquipped() override;
 
+	void OnHanded(bool EquipMotion);
+	void AttachedSocket(FName NewSocket);
+
+	UFUNCTION()
+	void MontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 public:
 	FORCEINLINE EOverlayType GetOverlayType() const { return OverlayType; }
 
 	const float GetDamage() const { return Damage; }
+	const FAnimMontageSet GetMontageSet() { return EquippedMontageset; }
+	const bool IsPlayingEquipMontage() { return bIsPlayingEquipMontage; }
 };

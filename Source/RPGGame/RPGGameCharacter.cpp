@@ -11,6 +11,7 @@
 #include "Interface/InteractionComponent.h"
 #include "Component/PlayerCombatComponent.h"
 #include "Component/RPGCharacterMovementComponent.h"
+#include "UserMenu/AC_UserMenuComponent.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -338,6 +339,12 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 		//Equip
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnEquip);
+
+		//Sprint
+		EnhancedInputComponent->BindAction(GuardAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnGuard);
+
+		//Equip
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnLockOn);
 	}
 
 }
@@ -414,7 +421,7 @@ void ARPGGameCharacter::OnWalk(const FInputActionValue& Value)
 
 void ARPGGameCharacter::OnSprint(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("VALUE : %f"), Value.Get<float>());
+	//UE_LOG(LogTemp, Warning, TEXT("VALUE : %f"), Value.Get<float>());
 	
 	if (URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
 		if (Value.Get<float>() > 0.f) {
@@ -434,6 +441,25 @@ void ARPGGameCharacter::OnEquip(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnEquip"));
 
+	if (ARPGGamePlayerController* PlayerController = Cast<ARPGGamePlayerController>(Controller)) {
+		if (UAC_UserMenuComponent* UserMenuComponent = PlayerController->FindComponentByClass<UAC_UserMenuComponent>()) {
+			UserMenuComponent->OnHandedWeapon();
+
+		}
+	}
+
+}
+
+void ARPGGameCharacter::OnGuard(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnGuard] : Press Key"));
+}
+
+void ARPGGameCharacter::OnLockOn(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnLockOn] : Press Key"));
+
+	CombatComponent->ActiveLockon();
 }
 
 void ARPGGameCharacter::OnJump()
@@ -460,10 +486,22 @@ void ARPGGameCharacter::EnhancedInputMapping()
 		SprintAction = IA_Sprint.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Equip(TEXT("/Game/ThirdPerson/Input/Actions/IA_Sprint.IA_Sprint"));
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Equip(TEXT("/Game/ThirdPerson/Input/Actions/IA_Equip.IA_Equip"));
 	if (IA_Equip.Succeeded()) {
 		EquipAction = IA_Equip.Object;
 	}
+
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Guard(TEXT("/Game/ThirdPerson/Input/Actions/IA_Guard.IA_Guard"));
+	if (IA_Guard.Succeeded()) {
+		GuardAction = IA_Guard.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_LockOn(TEXT("/Game/ThirdPerson/Input/Actions/IA_LockOn.IA_LockOn"));
+	if (IA_LockOn.Succeeded()) {
+		LockOnAction = IA_LockOn.Object;
+	}
+
 }
 
 void ARPGGameCharacter::EquipWeapon()

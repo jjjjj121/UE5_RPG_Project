@@ -38,8 +38,11 @@ AMonster_AI::AMonster_AI()
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
 	//set Collision
-	GetMesh()->SetCollisionProfileName(FName("Monster"));
-	GetMesh()->SetGenerateOverlapEvents(true);
+	GetCapsuleComponent()->SetCollisionProfileName(FName("Monster"));
+	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+
+	//GetMesh()->SetCollisionProfileName(FName("Monster"));
+	//GetMesh()->SetGenerateOverlapEvents(true);
 
 }
 
@@ -377,6 +380,7 @@ void AMonster_AI::SetRootItems()
 			if (RootItemData.ItemNum) {
 				UItemInstance* NewInstance = NewObject<UItemInstance>(this);
 				NewInstance->ItemDefinition = NewObject<UItemDefinition>(this);
+				
 				NewInstance->InitInstance(RootItemData.RootItemID);
 				NewInstance->ItemStack = RootItemData.ItemNum;
 

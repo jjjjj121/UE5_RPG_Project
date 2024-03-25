@@ -22,7 +22,7 @@ void UShieldInstance::OnEquipped()
 		ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld());
 
 		if (UPlayerCombatComponent* CombatComponent = Character->FindComponentByClass<UPlayerCombatComponent>()) {
-			CombatComponent->SetShieldAnimData(BehaviorAnim);
+			//CombatComponent->SetShieldAnimData(BehaviorAnim);
 		}
 
 

@@ -28,11 +28,10 @@ void UDamageNotify_Player::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSeq
 
 				ETraceTypeQuery MyTraceType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel2);
 				float Damage = Player->GetDamage() * DamageScale;
+				bool Result = UKismetSystemLibrary::SphereTraceMulti(MeshComp, StartPosition, EndPosition, DamageRadius, MyTraceType, false, actorToIgnore, EDrawDebugTrace::ForDuration, HitResults, true, FColor::Red, FColor::Green, 5.f);
 
-				bool Result = UKismetSystemLibrary::SphereTraceMulti(MeshComp, StartPosition, EndPosition, DamageRadius, MyTraceType, false, actorToIgnore, EDrawDebugTrace::ForDuration, HitResults, true, FColor::Red, FColor::Green, 1.f);
-
-
-				if (Result) {
+				if (HitResults.Num()) {
+					UE_LOG(LogTemp, Warning, TEXT("HitResult : %d"), HitResults.Num());
 					for (FHitResult HitResult : HitResults) {
 						actorToIgnore.Add(HitResult.GetActor());
 						if (HitResult.GetActor()->ActorHasTag("Monster")) {

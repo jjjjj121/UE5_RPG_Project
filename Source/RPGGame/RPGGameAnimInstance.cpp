@@ -61,17 +61,17 @@ void URPGGameAnimInstance::UpdateWeaponShield()
 		bEquipShield = Controller->UserMenuComp->IsEquipShield();
 	}
 
-	/*Anim Update*/
-	if (bEquipWeapon) {
-		if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
-			SetWeaponAnimData(CombatComponent->GetWeaponAnimData());
-		}
-	}
-	if (bEquipShield) {
-		if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
-			SetSheildAnimData(CombatComponent->GetShieldAnimData());
-		}
-	}
+	///*Anim Update*/
+	//if (bEquipWeapon) {
+	//	if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
+	//		SetWeaponAnimData(CombatComponent->GetWeaponAnimData());
+	//	}
+	//}
+	//if (bEquipShield) {
+	//	if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
+	//		SetSheildAnimData(CombatComponent->GetShieldAnimData());
+	//	}
+	//}
 
 	this->WeaponEnum = OwningCharacter->WeaponEnum;
 

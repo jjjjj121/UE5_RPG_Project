@@ -17,42 +17,31 @@ class RPGGAME_API UPlayerCombatComponent : public UActorComponent
 
 private:
 	UPROPERTY()
-	ARPGGameCharacter* OwnPlayer;
-
+	ARPGGameCharacter* OwningActor;
 
 private:
-	//UPROPERTY(EditDefaultsOnly, Category = "WeaponAnim")
-	//UBehaviorAnimData* DefaultAnimData;
-
-	UPROPERTY(EditAnywhere, Category = "WeaponAnim")
-	UBehaviorAnimData* WeaponAnimData;
-
-	UPROPERTY(EditDefaultsOnly, Category = "WeaponAnim")
-	UBehaviorAnimData* ShieldAnimData;
+	UAnimMontage* AttachAnimData;
 
 public:	
 	UPlayerCombatComponent();
 
 public:
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-public:
-	//UFUNCTION(BlueprintCallable, Meta = (BlueprintThreadSafe))
-	//UBehaviorAnimData* GetDefaultAnimData() const { return DefaultAnimData; }
+#pragma region LockOn
+private:
+	AActor* Target;
 
-	UFUNCTION(BlueprintCallable, Meta = (BlueprintThreadSafe))
-	UBehaviorAnimData* GetWeaponAnimData() const { return WeaponAnimData; }
-	UFUNCTION(BlueprintCallable, Meta = (BlueprintThreadSafe))
-	UBehaviorAnimData* GetShieldAnimData() const { return ShieldAnimData; }
-
-public:
-	void SetWeaponAnimData(UBehaviorAnimData* NewEquipWeaponAnimData) { WeaponAnimData = NewEquipWeaponAnimData; }
-	void SetShieldAnimData(UBehaviorAnimData* NewEquipWeaponAnimData) { ShieldAnimData = NewEquipWeaponAnimData; }
+	float LimitDistance;
 
 
 public:
+	void ActiveLockon();
 
 
-	
+#pragma endregion
+public:
+
 
 };
