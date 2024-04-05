@@ -48,6 +48,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character_State_Data", Meta = (AllowprivateAccess = true))
 	bool IsFight;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character_State_Data", Meta = (AllowprivateAccess = true))
+	bool IsGuard;
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))
 	class ARPGGameCharacter* OwningCharacter;

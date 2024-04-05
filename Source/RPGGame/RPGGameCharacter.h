@@ -91,6 +91,7 @@ public:
 public:
 	UInteractionComponent* GetinteractionComponent() { return InteractionComponent; }
 
+	UPlayerCombatComponent* GetCombatComponent() { return CombatComponent; }
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data", Meta = (AllowprivateAccess = true))
 	EWeaponType WeaponEnum;
@@ -193,6 +194,9 @@ private:
 	void EquipWeapon();
 
 	class AEquipItem* Weapon;
+
+public:
+	URPGGameAnimInstance* GetAnimInstance() { return AnimInstance; }
 
 public:
 	void Attack();

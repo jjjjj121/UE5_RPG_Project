@@ -25,6 +25,15 @@ enum class EMontageCategory : uint8
 	Guard,
 };
 
+UENUM(BlueprintType)
+enum class EDirectionFromAngle : uint8
+{
+	Fwd,
+	Bwd,
+	Right,
+	Left,
+};
+
 USTRUCT(BlueprintType)
 struct FAnimDataArray
 {

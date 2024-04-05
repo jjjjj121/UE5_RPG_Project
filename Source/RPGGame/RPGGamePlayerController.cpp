@@ -31,6 +31,7 @@ ARPGGamePlayerController::ARPGGamePlayerController()
 	if (Curve.Succeeded()) {
 		FloatCurve = Curve.Object;
 	}
+
 }
 
 void ARPGGamePlayerController::BeginPlay()

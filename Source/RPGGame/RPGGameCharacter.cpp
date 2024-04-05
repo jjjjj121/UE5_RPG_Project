@@ -452,14 +452,23 @@ void ARPGGameCharacter::OnEquip(const FInputActionValue& Value)
 
 void ARPGGameCharacter::OnGuard(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnGuard] : Press Key"));
+	//UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnGuard] : Press Key _ %f"), Value.Get<float>());
+	if (Value.Get<float>() > 0.f) {
+		CombatComponent->ActivateGuard();
+	}
+	else {
+		CombatComponent->DeactivateGuard();
+	}
+
+
 }
 
 void ARPGGameCharacter::OnLockOn(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnLockOn] : Press Key"));
 
-	CombatComponent->ActiveLockon();
+	CombatComponent->GetLockedOn() ? CombatComponent->DeactivateLockon() : CombatComponent->ActivateLockon();
+
 }
 
 void ARPGGameCharacter::OnJump()

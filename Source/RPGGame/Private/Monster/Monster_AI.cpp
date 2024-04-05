@@ -379,7 +379,7 @@ void AMonster_AI::SetRootItems()
 			}
 			if (RootItemData.ItemNum) {
 				UItemInstance* NewInstance = NewObject<UItemInstance>(this);
-				NewInstance->ItemDefinition = NewObject<UItemDefinition>(this);
+				//NewInstance->ItemDefinition = NewObject<UItemDefinition>(this);
 				
 				NewInstance->InitInstance(RootItemData.RootItemID);
 				NewInstance->ItemStack = RootItemData.ItemNum;

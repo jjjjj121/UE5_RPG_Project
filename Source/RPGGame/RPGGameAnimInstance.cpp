@@ -8,6 +8,7 @@
 
 #include "RPGGameCharacter.h"
 #include "RPGGamePlayerController.h"
+
 #include "UserMenu/AC_UserMenuComponent.h"
 #include "Component/PlayerCombatComponent.h"
 #include "Component/RPGCharacterMovementComponent.h"
@@ -36,6 +37,8 @@ void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		URPGCharacterMovementComponent* CharacterMovementComp = CastChecked<URPGCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
 		GroundDistance = CharacterMovementComp->GetGroundDistance();
 		//IsFight = OwningCharacter->IsFight;
+
+		IsGuard = OwningCharacter->GetCombatComponent()->GetIsGuard();
 	}
 
 

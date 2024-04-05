@@ -29,16 +29,40 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+
+
+#pragma region Guard
+
+private:
+	
+	bool bIsGuard = false;
+
+
+public:
+	void ActivateGuard();
+	void DeactivateGuard();
+
+public:
+	bool GetIsGuard() { return bIsGuard; }
+
+#pragma endregion
+
 #pragma region LockOn
 private:
 	AActor* Target;
 
-	float LimitDistance;
+	float LimitLockOnDistance;
+	float LimitUnLockDistance;
+
+	bool bIsLockedOn = false;
 
 
 public:
-	void ActiveLockon();
+	void ActivateLockon();
+	void DeactivateLockon();
 
+public:
+	bool GetLockedOn() { return bIsLockedOn; }
 
 #pragma endregion
 public:

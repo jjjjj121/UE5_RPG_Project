@@ -3,14 +3,22 @@
 
 #include "Component/PlayerCombatComponent.h"
 
+#include "RPGGame/RPGGameAnimInstance.h"
+
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include "Math/RotationMatrix.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Engine/HitResult.h"
+
 
 #include "RPGGame/RPGGameCharacter.h"
 
 UPlayerCombatComponent::UPlayerCombatComponent()
-	:LimitDistance(1000.f)
+	:LimitLockOnDistance(1000.f)
+	, LimitUnLockDistance(1200.f)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -23,85 +31,114 @@ void UPlayerCombatComponent::BeginPlay()
 	OwningActor = Cast<ARPGGameCharacter>(GetOwner());
 }
 
+
+
 void UPlayerCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//UE_LOG(LogTemp, Warning, TEXT("COMBAT COMP : TICK COMPONENT"));
 
+	if (bIsLockedOn) {
+		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(OwningActor->GetActorLocation(), Target->GetActorLocation());
+		OwningActor->GetController()->SetControlRotation(LookAtRotation);
+
+		float Distance = (Target->GetActorLocation() - OwningActor->GetActorLocation()).Length();
+
+		if (Distance > LimitUnLockDistance) {
+			DeactivateLockon();
+		}
+	}
+
 
 }
 
-void UPlayerCombatComponent::ActiveLockon()
+#pragma region Guard
+void UPlayerCombatComponent::ActivateGuard()
 {
-	float Radius = 600.f;
-	float DrawDebugDuration = 1.f;
+	OwningActor->GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	bIsGuard = true;
 
-	FVector TraceVec = OwningActor->GetActorForwardVector() * LimitDistance;
+}
 
-	FVector Center = OwningActor->GetActorLocation() + (TraceVec * 0.5f);
-	FQuat Rotation = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+void UPlayerCombatComponent::DeactivateGuard()
+{
 
-	float HalfHeight = LimitDistance * 0.5f;
+	OwningActor->GetCharacterMovement()->MaxWalkSpeed = 400.f;
+	bIsGuard = false;
 
+}
+
+#pragma endregion
+
+#pragma region LockOn
+void UPlayerCombatComponent::ActivateLockon()
+{
 
 	if (OwningActor) {
-		//DrawDebugSphere(GetWorld(), Center, Radius, 20, FColor::Red, false, DrawDebugDuration);
-		//DrawDebugCapsule(GetWorld(), Center,HalfHeight, Radius, Rotation, FColor::Red, false, DrawDebugDuration);
 
+		FVector Center = OwningActor->GetActorLocation();
 
-		TArray<FOverlapResult> OverlapResults;
-
-		//GetWorld()->OverlapMultiByChannel(OverlapResults, OwnerPlayer->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel3, CollisionShape, CQParams);
-
-		FCollisionShape MySphere = FCollisionShape::MakeSphere(Radius);
 		TArray<FHitResult> OutResults;
 
+		TArray<TEnumAsByte<enum EObjectTypeQuery>> objectTypes;
 		EObjectTypeQuery NewObjectChannel = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1);
-		GetWorld()->SweepMultiByChannel(OutResults, Center, Center, FQuat::Identity, ECollisionChannel::ECC_WorldStatic, MySphere);
-		DrawDebugSphere(GetWorld(), Center, Radius, 20, FColor::Red, false, DrawDebugDuration);
+		objectTypes.Add(NewObjectChannel);
+
+		TArray<AActor*> IgnoreActor;
+
+		UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), Center, Center, LimitLockOnDistance, objectTypes, false, IgnoreActor, EDrawDebugTrace::ForDuration, OutResults, true);
+
+		float NearestDistance = 0;
+
+		for (FHitResult Result : OutResults) {
+			if (Result.bBlockingHit) {
+				FVector PlayerLoc = OwningActor->GetActorForwardVector();
+				FVector PlayerLoc2 = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetActorForwardVector();
+				FVector TargetLoc = (Result.GetActor()->GetActorLocation() - OwningActor->GetActorLocation()).GetSafeNormal();
+
+				float Dot = FVector::DotProduct(PlayerLoc2, TargetLoc);
+
+				if (Dot > 0.5f) {
+
+					float NewDistance = (Result.GetActor()->GetActorLocation() - OwningActor->GetActorLocation()).Length();
+					//UE_LOG(LogTemp, Warning, TEXT("HIT RESULT : Actor Name : %s , NewDistance : %f"), *Result.GetActor()->GetActorNameOrLabel(), NewDistance);
+
+					if (!NearestDistance || NewDistance < NearestDistance) {
+						Target = Result.GetActor();
+					}
+
+				}
+			}
+		}
+
+		if (Target != nullptr) {
+			OwningActor->GetCharacterMovement()->bOrientRotationToMovement = false;
+			OwningActor->bUseControllerRotationYaw = true;
+			OwningActor->GetAnimInstance()->SetIsFight(true);
 
 
-		UE_LOG(LogTemp, Warning, TEXT("Hit Acotr Num : %d"), OutResults.Num());
+			bIsLockedOn = true;
 
-		//FCollisionObjectQueryParams ObejctList;
+		}
 
-		//TArray<TEnumAsByte<enum EObjectTypeQuery>> objectTypes;
-		//EObjectTypeQuery NewObjectChannel = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1);
-		//objectTypes.Add(NewObjectChannel);
-
-		//TArray<AActor*> IgnoreActor;
-
-		//UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), Center, Center, Radius, objectTypes, false, IgnoreActor, EDrawDebugTrace::ForDuration, OutResults, true);
-
-		//UE_LOG(LogTemp, Warning, TEXT("Hit Acotr Num : %d"), OutResults.Num());
-
-
-
-		//for (FHitResult Result : OutResults) {
-		//	if (Result.bBlockingHit) {
-		//		UE_LOG(LogTemp, Warning, TEXT("HIT RESULT : Actor Name : %s"), *Result.GetActor()->GetActorNameOrLabel());
-		//	}
-		//}
-
-
-		//for (FOverlapResult OverlapResult : OverlapResults)
-		//{
-		//	if (AActor* Target = OverlapResult.GetActor())
-		//	{
-		//		if (Target->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
-		//		{
-		//			if (IInteractionInterface::Execute_IsAvailableInteraction(Target))
-		//			{
-		//				TargetActor = Target;
-		//				IInteractionInterface::Execute_SetTouchActor(Target, OwnerPlayer.Get());
-
-		//				return;
-		//			}
-		//		}
-		//	}
-		//}
 	}
 }
 
+void UPlayerCombatComponent::DeactivateLockon()
+{
+	UE_LOG(LogTemp, Warning, TEXT("UPlayerCombatComponent::DeactivateLockon"));
+
+
+	OwningActor->GetCharacterMovement()->bOrientRotationToMovement = true;
+	OwningActor->bUseControllerRotationYaw = false;
+	OwningActor->GetAnimInstance()->SetIsFight(false);
+
+	bIsLockedOn = false;
+	Target = nullptr;
+
+
+}
+
+#pragma endregion
 

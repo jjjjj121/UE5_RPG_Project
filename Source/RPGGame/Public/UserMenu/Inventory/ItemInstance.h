@@ -15,6 +15,9 @@ class RPGGAME_API UItemInstance : public UObject
 	GENERATED_BODY()
 
 public:
+	UItemInstance();
+
+public:
 	UPROPERTY(VisibleAnywhere)
 	UItemDefinition* ItemDefinition;
 
