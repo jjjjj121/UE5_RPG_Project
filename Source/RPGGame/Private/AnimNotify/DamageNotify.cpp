@@ -26,12 +26,21 @@ void UDamageNotify::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 			ETraceTypeQuery MyTraceType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel2);
 			float Damage = OwnerMonster->Damage * DamageScale;
 
-			bool Result = UKismetSystemLibrary::SphereTraceMulti(MeshComp, StartPosition, EndPosition, DamageRadius, MyTraceType, false, actorToIgnore, EDrawDebugTrace::ForDuration, HitResults, true, FColor::Red, FColor::Green, 1.f);
+			bool Result = UKismetSystemLibrary::SphereTraceMulti(MeshComp, StartPosition, EndPosition, DamageRadius, MyTraceType, false, actorToIgnore, EDrawDebugTrace::ForDuration, HitResults, true, FColor::Red, FColor::Green, 10.f);
 
 			if (Result) {
 				for (FHitResult HitResult : HitResults) {
+					
+					if (actorToIgnore.Contains(HitResult.GetActor())) {
+						//UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify::NotifyTick] : Already Apply Damage"));
+						break;
+					}
+					//UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify::NotifyTick] : %s"), *HitResult.GetActor()->GetName());
 					actorToIgnore.Add(HitResult.GetActor());
+
+
 					if (HitResult.GetActor()->ActorHasTag("Player")) {
+						
 						UGameplayStatics::ApplyDamage(HitResult.GetActor(), Damage, OwnerMonster->GetController(), OwnerMonster, DamageType ? DamageType : NULL);
 
 					}
@@ -59,7 +68,13 @@ void UDamageNotify::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 
 			if (Result) {
 				for (FHitResult HitResult : HitResults) {
+
+					if (actorToIgnore.Contains(HitResult.GetActor())) {
+						//UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify::NotifyTick] : Already Apply Damage"));
+						break;
+					}
 					actorToIgnore.Add(HitResult.GetActor());
+
 					if (HitResult.GetActor()->ActorHasTag("Player")) {
 						UGameplayStatics::ApplyDamage(HitResult.GetActor(), Damage, OwnerMonster->GetController(), OwnerMonster, DamageType ? DamageType : NULL);
 

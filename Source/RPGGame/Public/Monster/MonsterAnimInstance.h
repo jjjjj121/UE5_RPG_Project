@@ -7,8 +7,8 @@
 #include "RPGGame/Structs.h"
 #include "MonsterAnimInstance.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnNextAttackDelegata);
-DECLARE_MULTICAST_DELEGATE(FOnAttackHitDelegata);
+DECLARE_MULTICAST_DELEGATE(FOnNextAttackDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAttackHitDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnEndDelegata);
 
 /**
@@ -61,8 +61,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FMonsterAnim MonsterAnimation;
 public:
-	FOnNextAttackDelegata OnNextAttack;
-	FOnAttackHitDelegata OnAttackHit;
+	FOnNextAttackDelegate OnNextAttack;
+	FOnAttackHitDelegate OnAttackHit;
 	FOnEndDelegata OnEnd;
 
 public:

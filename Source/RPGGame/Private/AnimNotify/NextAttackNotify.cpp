@@ -23,7 +23,7 @@ void UNextAttackNotify::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenc
 	AMonster_AI* OwnerMonster = Cast<AMonster_AI>(MeshComp->GetOwner());
 
 	if (OwnerMonster) {
-		UE_LOG(LogTemp, Warning, TEXT("NEXT ATTACK BROADCAST"));
+		//UE_LOG(LogTemp, Warning, TEXT("NEXT ATTACK BROADCAST"));
 		OwnerMonster->MonsterAnimInstance->OnNextAttack.Broadcast();
 
 		//Attack 시 Truning 시기를 설정

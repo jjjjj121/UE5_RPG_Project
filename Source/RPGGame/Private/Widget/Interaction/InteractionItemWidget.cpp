@@ -40,7 +40,7 @@ void UInteractionItemWidget::SetInteractionItem(const FVector& Location, const F
 
 void UInteractionItemWidget::OnVisibility(ESlateVisibility InVisibility)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[UInteractionItemWidget] : OnVisibility"));
+	//UE_LOG(LogTemp, Warning, TEXT("[UInteractionItemWidget] : OnVisibility"));
 
 	bool BoolParam = InVisibility == ESlateVisibility::Visible ? true : false;
 	FString KeyParam = TEXT("E");				//Key

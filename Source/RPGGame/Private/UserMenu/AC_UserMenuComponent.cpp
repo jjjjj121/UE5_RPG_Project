@@ -54,7 +54,7 @@ FEquipmentEntry FEquipmentList::SetNewEntry(TSubclassOf<UEquipmentDefinition> Ne
 	const UEquipmentDefinition* EquipmentCDO = GetDefault<UEquipmentDefinition>(NewDefinition);
 
 	if (EquipmentCDO->InstanceType == nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("[FEquipmentList ^ SetNewEntry] :  Instance Type is nullptr. Check Data Table."))
+		UE_LOG(LogTemp, Warning, TEXT("[FEquipmentList::SetNewEntry] :  Instance Type is nullptr. Check Data Table."))
 			return FEquipmentEntry();
 	}
 
@@ -111,11 +111,11 @@ EEquipCategoryType FEquipmentList::CheckCategory(FEquipmentEntry NewEntry)
 	switch (EquipType)
 	{
 	case EEquipmentType::WEAPON:
-		UE_LOG(LogTemp, Warning, TEXT("Equip Category Is WEAPON"));
+		UE_LOG(LogTemp, Warning, TEXT("[FEquipmentList::CheckCategory] : Equip Category Is WEAPON"));
 		result = EEquipCategoryType::MAINWEAPON;
 		break;
 	case EEquipmentType::SHIELD:
-		UE_LOG(LogTemp, Warning, TEXT("Equip Category Is SHIELD"));
+		UE_LOG(LogTemp, Warning, TEXT("[FEquipmentList::CheckCategory] : Equip Category Is SHIELD"));
 		result = EEquipCategoryType::SUBWEAPON;
 		break;
 	case EEquipmentType::ARROW:

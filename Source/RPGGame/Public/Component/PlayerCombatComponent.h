@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Library/AnimEnumLibrary.h"
 #include "PlayerCombatComponent.generated.h"
 
 class UBehaviorAnimData;
@@ -19,8 +20,14 @@ private:
 	UPROPERTY()
 	ARPGGameCharacter* OwningActor;
 
+	UPROPERTY(EditAnywhere)
+	class URPGGameAnimInstance* AnimInstance;
+
 private:
 	UAnimMontage* AttachAnimData;
+
+	FAnimMontageSet WeaponMontageset;
+
 
 public:	
 	UPlayerCombatComponent();
@@ -28,6 +35,63 @@ public:
 public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+
+public:
+	void SetWeaponMontageset(FAnimMontageSet NewMontageSet) { WeaponMontageset = NewMontageSet; }
+	void PlayMontageWithBind(UAnimMontage* NewMontage);
+
+#pragma region Attack
+
+private:
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+	bool IsAttacking;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+	int32 CurrentCombo;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+	bool CanNextCombo;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
+	bool IsComboInputOn;
+
+	bool bFullCharged;
+
+	bool bDoOnce = true;
+
+private:
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION()
+	void JumpAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION()
+	void OnNextAttack();
+
+	/*Start Combo -> Set Property*/
+	void AttackStartComboState();
+	/*End Combo -> Init Property*/
+	void AttackEndComboState();
+
+	int32 GetMaxCombo();
+
+public:
+	void Charging();
+	void ChargingAttack();
+	void LightAttack();
+	void MeleeJumpAttack();
+	void DodgeAttack();
+	void RollAttack();
+
+	void Attack(bool IsPressed);
+
+	bool GetIsAttacking() { return IsAttacking; }
+
+	void TurnAttack();
+
+#pragma endregion
 
 
 

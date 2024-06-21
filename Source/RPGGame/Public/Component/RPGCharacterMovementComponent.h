@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Library/PlayerEnumLibrary.h"
 #include "RPGCharacterMovementComponent.generated.h"
 
 /**
@@ -16,6 +17,19 @@ class RPGGAME_API URPGCharacterMovementComponent : public UCharacterMovementComp
 public:
 	URPGCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 
+public:
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+public:
+	bool bJumpable = true;
+	bool bLandable = false;
+
+	EPlayerMovementType PlayerState;
+
+private:
+	void UpdateMovementProperty();
+	void UpdateWalkSpeed();
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FHitResult GroundHitResult;	
@@ -26,4 +40,6 @@ protected:
 
 public:
 	float GetGroundDistance();
+
+
 };

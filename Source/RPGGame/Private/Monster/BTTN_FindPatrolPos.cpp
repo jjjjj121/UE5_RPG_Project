@@ -44,7 +44,7 @@ EBTNodeResult::Type UBTTN_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& Own
 
 		//Task 종료를 알림
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-		UE_LOG(LogTemp, Warning, TEXT("TASK SUCCEED"));
+		//UE_LOG(LogTemp, Warning, TEXT("TASK SUCCEED"));
 		return EBTNodeResult::Succeeded;
 	}
 

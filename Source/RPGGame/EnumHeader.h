@@ -64,14 +64,6 @@ enum class EEquipmentType : uint8
 	MAX
 };
 
-UENUM(BlueprintType)
-enum class EOverlayType : uint8
-{
-	Default,
-	OneHandedWeapon UMETA(DisplayName = "One-Handed Weapon"),
-	TwoHandedWeapon UMETA(DisplayName = "Two-Handed Weapon"),
-};
-
 
 UENUM(BlueprintType)
 enum class EWeaponType : uint8

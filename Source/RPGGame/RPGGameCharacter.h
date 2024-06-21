@@ -5,12 +5,16 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+
 #include "EnumHeader.h"
-#include "PlayerDefinition.h"
+#include "Library/AnimEnumLibrary.h"
 #include "Library/PlayerEnumLibrary.h"
+
+#include "PlayerDefinition.h"
 #include "RPGGameCharacter.generated.h"
 
 class UInteractionComponent;
+
 
 UCLASS(config = Game)
 class ARPGGameCharacter : public ACharacter
@@ -53,6 +57,10 @@ class ARPGGameCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* SprintAction;
 
+	/** Sprint Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* RollAction;
+
 	/** Equip Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* EquipAction;
@@ -66,9 +74,6 @@ class ARPGGameCharacter : public ACharacter
 	class UInputAction* LockOnAction;
 
 
-
-
-
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class ARPGGameHUD* HUD;
 
@@ -80,13 +85,25 @@ class ARPGGameCharacter : public ACharacter
 
 
 private:
+	/*Default Animation*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimLayer", Meta = (AllowprivateAccess = true))
 	TSubclassOf<UAnimInstance> DefaultAnimLayer;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimLayer", Meta = (AllowprivateAccess = true))
+	FAnimMontageSet DefaultAnimMontageSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimLayer", Meta = (AllowprivateAccess = true))
+	TMap<FName, UAnimMontage*> DeathReact;
+
 	EPlayerMovementType MovementType;
 
+	EPlayerStateType PlayerState;
+
 public:
-	void SetAnimLayer(TSubclassOf<UAnimInstance> NewAnimLayer);
+	FVector2D LocalInputVector;
+
+public:
+	void SetAnimData(TSubclassOf<UAnimInstance> NewAnimLayer, FAnimMontageSet NewMontageSet);
 
 public:
 	UInteractionComponent* GetinteractionComponent() { return InteractionComponent; }
@@ -124,23 +141,25 @@ protected:
 	UFUNCTION()
 	void OnSprint(const FInputActionValue& Value);
 
-	/** Called for Sprint input */
+	/** Called for Roll input */
+	UFUNCTION()
+	void OnRoll(const FInputActionValue& Value);
+
+	/** Called for Equip input */
 	UFUNCTION()
 	void OnEquip(const FInputActionValue& Value);
 
-	/** Called for Sprint input */
+	/** Called for Guard input */
 	UFUNCTION()
 	void OnGuard(const FInputActionValue& Value);
 
-	/** Called for Sprint input */
+	/** Called for LockOn input */
 	UFUNCTION()
 	void OnLockOn(const FInputActionValue& Value);
 
 
 	UFUNCTION()
 	void OnJump();
-
-
 
 	void EnhancedInputMapping();
 
@@ -167,40 +186,16 @@ public:
 
 	/*Animation*/
 private:
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
-	bool IsAttacking;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
-	int32 CurrentCombo;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
-	bool CanNextCombo;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Animation", Meta = (AllowprivateAccess = true))
-	bool IsComboInputOn;
-
 	UPROPERTY(EditAnywhere)
 	class URPGGameAnimInstance* AnimInstance;
-
-	UFUNCTION()
-	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
-	/*Start Combo -> Set Property*/
-	void AttackStartComboState();
-	/*End Combo -> Init Property*/
-	void AttackEndComboState();
-
-	UFUNCTION(BlueprintCallable)
-	void EquipWeapon();
-
-	class AEquipItem* Weapon;
 
 public:
 	URPGGameAnimInstance* GetAnimInstance() { return AnimInstance; }
 
 public:
-	void Attack();
-	bool GetIsAttacking();
+	void Attack(bool IsPressed);
+	void Charging();
+	//bool GetIsAttacking();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateHP(float MaxHP, float CurHP);
@@ -209,36 +204,17 @@ public:
 	void ReceivingDamage(float MaxHP, float CurHP);
 
 
-	int32 CalculateDirectionIndex(float Direction);
+	FName ConvertDirection(float Direction);
 
-	UPROPERTY(EditAnywhere)
-	TMap<int32, UAnimMontage*> Basic_Hit_Reaction_Montages;
-
-	UPROPERTY(EditAnywhere)
-	TMap<int32, UAnimMontage*> Charged_Hit_Reaction_Montages;
-
-	UPROPERTY(EditAnywhere)
-	TMap<int32, UAnimMontage*> Death_Reaction_Montages;
 
 	UFUNCTION(BlueprintCallable)
-	void DoDeath(int32 DirectionIndex);
+	void DoDeath(FName DirectionIndex);
 
 	float GetDamage();
-
-	void TurnAttack();
 
 #pragma endregion
 
 public:
-	//UPROPERTY(BlueprintReadWrite, Category = "Stance")
-	//bool IsFight;
-	//
-	//void SetFightStance(bool NewStance);
-
-	//FTimerHandle OnFightTimerHandle;
-
-	//UPROPERTY(BlueprintReadWrite)
-	//EPlayerStance PlayerStance;
 
 
 

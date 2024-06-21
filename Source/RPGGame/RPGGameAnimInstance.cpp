@@ -19,14 +19,9 @@
 #include "Kismet/KismetMathLibrary.h"
 
 URPGGameAnimInstance::URPGGameAnimInstance(FObjectInitializer const& object_initializer) : Super(object_initializer)
+, LandableDistance(100.f)
 {
-	static ConstructorHelpers::FObjectFinder<UDataAsset>DataAsset(TEXT("/Game/DataAsset/DA_Default_BehaviorAnim.DA_Default_BehaviorAnim"));
 
-	if (DataAsset.Succeeded()) {
-		DefaultAnimData = Cast<UBehaviorAnimData>(DataAsset.Object);
-	}
-	//UDataAsset* DataAsset;
-	
 
 }
 void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -34,93 +29,42 @@ void URPGGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
 	if (OwningCharacter) {
-		URPGCharacterMovementComponent* CharacterMovementComp = CastChecked<URPGCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
-		GroundDistance = CharacterMovementComp->GetGroundDistance();
-		//IsFight = OwningCharacter->IsFight;
+		GroundDistance = MovementComponent->GetGroundDistance();
 
 		IsGuard = OwningCharacter->GetCombatComponent()->GetIsGuard();
+
+		UpdateLandalbe();
 	}
 
-
-
 }
+
 
 void URPGGameAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	UE_LOG(LogTemp, Warning, TEXT("NativeInitializeAnimation"));
-
 	OwningCharacter = Cast<ARPGGameCharacter>(GetOwningActor());
 
-}
-
-
-void URPGGameAnimInstance::UpdateWeaponShield()
-{
-	/*bool Update*/
-	if (ARPGGamePlayerController* Controller = Cast<ARPGGamePlayerController>(OwningCharacter->GetController())) {
-		bEquipWeapon = Controller->UserMenuComp->IsEquipWeapon();
-		bEquipShield = Controller->UserMenuComp->IsEquipShield();
+	if (OwningCharacter) {
+		MovementComponent = Cast<URPGCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
 	}
 
-	///*Anim Update*/
-	//if (bEquipWeapon) {
-	//	if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
-	//		SetWeaponAnimData(CombatComponent->GetWeaponAnimData());
-	//	}
-	//}
-	//if (bEquipShield) {
-	//	if (UPlayerCombatComponent* CombatComponent = OwningCharacter->FindComponentByClass<UPlayerCombatComponent>()) {
-	//		SetSheildAnimData(CombatComponent->GetShieldAnimData());
-	//	}
-	//}
-
-	this->WeaponEnum = OwningCharacter->WeaponEnum;
 
 }
 
-
-
-void URPGGameAnimInstance::SetWeaponAnimData(UBehaviorAnimData* NewAnimData)
+void URPGGameAnimInstance::PlayMontage(UAnimMontage* NewMontage , float Newrate)
 {
-	WeaponAnimData = NewAnimData;
+	Montage_Play(NewMontage, Newrate);
 }
 
-void URPGGameAnimInstance::SetSheildAnimData(UBehaviorAnimData* NewAnimData)
+void URPGGameAnimInstance::PlayMontage_Section(UAnimMontage* NewMontage, FName NewSectionName)
 {
-	ShieldAnimData = NewAnimData;
-}
 
-UBehaviorAnimData* URPGGameAnimInstance::GetCurBehavior()
-{
-	return bEquipWeapon ? WeaponAnimData : DefaultAnimData;
+	Montage_SetNextSection(NewSectionName, Montage_GetCurrentSection(), NewMontage);
 }
 
 
 #pragma region Attack
-
-void URPGGameAnimInstance::PlayAttackMontage()
-{
-	if (UBehaviorAnimData* CurBehavior = GetCurBehavior()) {
-		FAnimDataArray AttackMontage = CurBehavior->GetMontageList(EMontageCategory::Attack);
-		if (UAnimMontage* Montage = Cast<UAnimMontage>(AttackMontage.AnimAssetList[0])) {
-			Montage_Play(Montage, 1.0f);
-		}
-	}
-
-}
-
-void URPGGameAnimInstance::JumpToAttackMontageSection(int32 NewSection)
-{
-	if (UBehaviorAnimData* CurBehavior = GetCurBehavior()) {
-		FAnimDataArray AttackMontage = CurBehavior->GetMontageList(EMontageCategory::Attack);
-		if (UAnimMontage* Montage = Cast<UAnimMontage>(AttackMontage.AnimAssetList[0])) {
-			Montage_SetNextSection(GetAttackMontageSectionName(NewSection - 1), GetAttackMontageSectionName(NewSection), Montage);
-		}
-	}
-
-}
 
 void URPGGameAnimInstance::AnimNotify_AttackHitNotify()
 {
@@ -133,50 +77,46 @@ void URPGGameAnimInstance::AnimNotify_NextAttackNotify()
 	OnNextAttack.Broadcast();
 }
 
-
-FName URPGGameAnimInstance::GetAttackMontageSectionName(int32 Section)
+void URPGGameAnimInstance::AnimNotify_ChargeAttackNotify()
 {
-	UBehaviorAnimData* CurBehavior;
-	bEquipWeapon ? CurBehavior = WeaponAnimData : CurBehavior = DefaultAnimData;
-
-	return FName(*FString::Printf(TEXT("Attack%d"), Section));
-	//return AttackBehavior->GetAttackMontageSectionName(Section);
+	//UE_LOG(LogTemp, Warning, TEXT("Charge Notify"));
+	OnChargeAttack.Broadcast();
 }
 
-
-int32 URPGGameAnimInstance::GetMaxCombo()
+void URPGGameAnimInstance::AnimNotify_EndRoll()
 {
-	if (UBehaviorAnimData* CurBehavior = GetCurBehavior()) {
-		FAnimDataArray AttackMontage = CurBehavior->GetMontageList(EMontageCategory::Attack);
-		if (UAnimMontage* Montage = Cast<UAnimMontage>(AttackMontage.AnimAssetList[0])) {
-			return Montage->GetNumSections();
-		}
-	}
+	//UE_LOG(LogTemp, Warning, TEXT("[AnimNotify_EndRoll]"));
+	//MovementComponent->bJumpable = true;
 
-	return 1;
+
+	
+	OnEndRoll.Broadcast();
+}
+
+FName URPGGameAnimInstance::GetMontageNextSectionName(FName SectionName, int32 SectionNum)
+{
+	FString SectionStr = SectionName.ToString();
+	FString ComboStr = FString::Printf(TEXT("%d"), SectionNum);
+	SectionStr.Append(ComboStr);
+
+	FName CurSectionName = Montage_GetCurrentSection();
+	FName NextSectionName = FName(*SectionStr);
+
+	return NextSectionName;
+}
+
+void URPGGameAnimInstance::UpdateLandalbe()
+{
+	if (MovementComponent->IsFalling() && GroundDistance <= LandableDistance) {
+		bLandable = true;
+	}
+	else {
+		bLandable = false;
+	}
 }
 
 
 #pragma endregion 
 
 
-#pragma region Locomotion
-
-UAnimationAsset* URPGGameAnimInstance::GetAnimAsset(UBehaviorAnimData* BehaviorAnimData, ELocomotionCategory LocomotionType, int32 Index)
-{
-	if (BehaviorAnimData == nullptr) {
-		return nullptr;
-	}
-
-	if (FAnimDataArray* AnimDataArray = BehaviorAnimData->Locomotion->LocomotionAnimList.Find(LocomotionType)) {
-		if (AnimDataArray->AnimAssetList.IsValidIndex(Index)) {
-			return AnimDataArray->AnimAssetList[Index];
-		}
-	}
-
-	return nullptr;
-}
-
-
-#pragma region
 

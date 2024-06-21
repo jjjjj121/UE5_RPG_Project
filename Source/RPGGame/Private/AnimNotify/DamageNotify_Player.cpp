@@ -33,7 +33,12 @@ void UDamageNotify_Player::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSeq
 				if (HitResults.Num()) {
 					UE_LOG(LogTemp, Warning, TEXT("HitResult : %d"), HitResults.Num());
 					for (FHitResult HitResult : HitResults) {
+						if (actorToIgnore.Contains(HitResult.GetActor())) {
+							//UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify::NotifyTick] : Already Apply Damage"));
+							break;
+						}
 						actorToIgnore.Add(HitResult.GetActor());
+
 						if (HitResult.GetActor()->ActorHasTag("Monster")) {
 							UGameplayStatics::ApplyDamage(HitResult.GetActor(), Damage, Player->GetController(), Player, DamageType ? DamageType : NULL);
 						}
@@ -51,7 +56,7 @@ void UDamageNotify_Player::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequ
 {
 	actorToIgnore.Empty();
 
-	if (EnableOnceNotify) {
+	if (!EnableTickNotify) {
 		ARPGGameCharacter* Player = Cast<ARPGGameCharacter>(MeshComp->GetOwner());
 		if (Player) {
 			FVector StartPosition = MeshComp->GetSocketLocation(StartSocketName);
@@ -65,6 +70,10 @@ void UDamageNotify_Player::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 			if (Result) {
 				for (FHitResult HitResult : HitResults) {
+					if (actorToIgnore.Contains(HitResult.GetActor())) {
+						//UE_LOG(LogTemp, Warning, TEXT("[UDamageNotify::NotifyTick] : Already Apply Damage"));
+						break;
+					}
 					actorToIgnore.Add(HitResult.GetActor());
 					if (HitResult.GetActor()->ActorHasTag("Monster")) {
 						UGameplayStatics::ApplyDamage(HitResult.GetActor(), Damage, Player->GetController(), Player, DamageType ? DamageType : NULL);

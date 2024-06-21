@@ -62,7 +62,7 @@ FReply UW_MenuLayout::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 	Reply.NativeReply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton)) {
-		UE_LOG(LogTemp, Warning, TEXT("[UW_MenuLayout] : MOUSE BUTTON DOWN"));
+		//UE_LOG(LogTemp, Warning, TEXT("[UW_MenuLayout] : MOUSE BUTTON DOWN"));
 
 		FWidgetParam WidgetParam;
 		URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::RButtonMenu, EWidgetFunctionNames::RButtonMenu_Hide, WidgetParam);

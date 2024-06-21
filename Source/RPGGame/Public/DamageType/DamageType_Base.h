@@ -6,6 +6,15 @@
 #include "GameFramework/DamageType.h"
 #include "DamageType_Base.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EDamageType : uint8
+{
+	Light,
+	Normal,
+	Heavy,
+};
+
 /**
  * 
  */
@@ -17,4 +26,7 @@ class RPGGAME_API UDamageType_Base : public UDamageType
 public:
 	UPROPERTY(EditAnywhere)
 	bool IsCharged = false;
+
+	UPROPERTY(EditAnywhere)
+	EDamageType DamageType;
 };

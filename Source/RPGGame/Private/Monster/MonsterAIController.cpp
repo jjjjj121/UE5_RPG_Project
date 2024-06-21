@@ -21,12 +21,13 @@ const FName AMonsterAIController::Key_IsDead(TEXT("IsDead"));
 
 AMonsterAIController::AMonsterAIController(FObjectInitializer const& object_initializer)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER CONSTRUCTOR"));
+	//UE_LOG(LogTemp, Warning, TEXT("AI CONTROLLER CONSTRUCTOR"));
+
 	//Behavior Tree Init
 	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BT_Object(TEXT("/Game/Data/BT_Monster.BT_Monster"));
 	if (BT_Object.Succeeded()) {
 		BTree = BT_Object.Object;
-		UE_LOG(LogTemp, Warning, TEXT("Behavior Tree Bind Succeed"));
+		//UE_LOG(LogTemp, Warning, TEXT("[AMonsterAIController::AMonsterAIController] : Behavior Tree Bind Succeed"));
 	}
 
 	//컴포넌트 생성 및 대입
@@ -62,7 +63,6 @@ void AMonsterAIController::SetPerceptionSystem()
 	//함수 Bind
 	GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AMonsterAIController::OnTargetDetected);
 
-	UE_LOG(LogTemp, Warning, TEXT("SET PERCEPTION"));
 }
 
 void AMonsterAIController::OnTargetDetected(AActor* Actor, FAIStimulus Stimulus)
@@ -72,12 +72,12 @@ void AMonsterAIController::OnTargetDetected(AActor* Actor, FAIStimulus Stimulus)
 			//Target 감지 시 blackboard true로 업데이트
 			BlackBoard->SetValueAsBool(Key_CanSeePlayer, Stimulus.WasSuccessfullySensed());
 			BlackBoard->SetValueAsObject(Key_Target, Actor);
-			UE_LOG(LogTemp, Warning, TEXT("TARGET DETECTED "));
+			//UE_LOG(LogTemp, Warning, TEXT("TARGET DETECTED "));
 		}
 	}
 	
 	if (!Actor) {
-		UE_LOG(LogTemp, Warning, TEXT("TARGET Out"));
+		//UE_LOG(LogTemp, Warning, TEXT("TARGET Out"));
 	}
 }
 
@@ -95,7 +95,6 @@ void AMonsterAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	UE_LOG(LogTemp, Warning, TEXT("AI POSSESS"));
 	if (BlackBoard) {
 		//Behavior Tree에 있는 Black Board 로 초기화 진행
 		BlackBoard->InitializeBlackboard(*BTree->BlackboardAsset);
@@ -113,7 +112,7 @@ void AMonsterAIController::BeginPlay()
 	
 	//Behavior Tree 실행을 시작 (일해라 ai)
 	if (!RunBehaviorTree(BTree)) {
-		UE_LOG(LogTemp, Warning, TEXT("AI Controller couldn't run behavior tree"));
+		UE_LOG(LogTemp, Warning, TEXT("[AMonsterAIController::BeginPlay] : AI Controller couldn't run behavior tree"));
 	}
 	BT_Component->StartTree(*BTree);
 

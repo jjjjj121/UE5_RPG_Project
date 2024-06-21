@@ -20,11 +20,11 @@ EBTNodeResult::Type UBTTN_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp,
 	ControllingPawn = Cast<AMonster_AI>(Controller->GetPawn());
 
 	if (ControllingPawn == nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("ControllingPawn Init Failed : Attack_Task"));
+		//UE_LOG(LogTemp, Warning, TEXT("ControllingPawn Init Failed : Attack_Task"));
 		return EBTNodeResult::Failed;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("FIRSTATTACk"));
+	//UE_LOG(LogTemp, Warning, TEXT("FIRSTATTACk"));
 	ControllingPawn->InitAttack();
 	ControllingPawn->Attack();
 
@@ -39,7 +39,7 @@ void UBTTN_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory
 	if (ControllingPawn) {
 		if (!ControllingPawn->GetIsAttacking()) {
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-			UE_LOG(LogTemp, Warning, TEXT("MONSTER ATTACK FINISHED"));
+			//UE_LOG(LogTemp, Warning, TEXT("MONSTER ATTACK FINISHED"));
 		}
 		/*Attack ม๘วเม฿*/
 		else {

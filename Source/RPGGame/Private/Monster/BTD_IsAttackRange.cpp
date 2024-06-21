@@ -33,7 +33,7 @@ bool UBTD_IsAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& Owne
 
 	
 	//몬스터 시야 밖이지만 범위 안에 있을 수 있으므로 시야 범위 안에서만 가능하도록 설정
-	UE_LOG(LogTemp, Warning, TEXT("DISTANCE : %f"), Target->GetDistanceTo(ControllingPawn));
+	//UE_LOG(LogTemp, Warning, TEXT("DISTANCE : %f"), Target->GetDistanceTo(ControllingPawn));
 	Result = (Target->GetDistanceTo(ControllingPawn) <= 200.0f) && OwnerComp.GetBlackboardComponent()->GetValueAsBool(AMonsterAIController::Key_CanSeePlayer);
 
 	if (Target->IsDead) {

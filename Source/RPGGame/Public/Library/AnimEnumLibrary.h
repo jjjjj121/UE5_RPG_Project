@@ -15,6 +15,14 @@ enum class ELocomotionCategory : uint8
 };
 
 UENUM(BlueprintType)
+enum class EOverlayType : uint8
+{
+	Default,
+	Dodge,
+	Roll,
+};
+
+UENUM(BlueprintType)
 enum class EMontageCategory : uint8
 {
 	Default,
@@ -33,6 +41,16 @@ enum class EDirectionFromAngle : uint8
 	Right,
 	Left,
 };
+
+namespace EAnimSectionName {
+	/*Attack*/
+	static FName Charge = TEXT("Charge");
+	static FName Attack = TEXT("Attack");
+
+	/*JumpAttack*/
+	static FName Loop = TEXT("Loop");
+	static FName Land = TEXT("Land");
+}
 
 USTRUCT(BlueprintType)
 struct FAnimDataArray
@@ -75,6 +93,36 @@ public:
 	UAnimMontage* UnEquipAnim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UAnimMontage* AttackAnim;
+	UAnimMontage* LightAttackAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* ChargeAttackAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* JumpAttackAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* DodgeAttackAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* RollAttackAnim;
+
+
+	/*HitReact*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* AdditiveHitReact;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* NormalHitReact;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* HeavyHitReact;
+
+	/*Rool*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* RollAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* DodgeAnim;
 
 };

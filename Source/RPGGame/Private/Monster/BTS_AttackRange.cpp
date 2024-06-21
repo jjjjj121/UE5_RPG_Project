@@ -30,7 +30,7 @@ void UBTS_AttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 	}
 
 	//몬스터 시야 밖이지만 범위 안에 있을 수 있으므로 시야 범위 안에서만 가능하도록 설정
-	UE_LOG(LogTemp, Warning, TEXT("DISTANCE : %f"), Target->GetDistanceTo(ControllingPawn));
+	//UE_LOG(LogTemp, Warning, TEXT("DISTANCE : %f"), Target->GetDistanceTo(ControllingPawn));
 	bool Result = (Target->GetDistanceTo(ControllingPawn) <= 200.0f) && OwnerComp.GetBlackboardComponent()->GetValueAsBool(AMonsterAIController::Key_CanSeePlayer);
 
 	OwnerComp.GetBlackboardComponent()->SetValueAsBool(AMonsterAIController::Key_CanAttackRange, Result);

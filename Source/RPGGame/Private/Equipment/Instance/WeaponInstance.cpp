@@ -19,7 +19,7 @@ void UWeaponInstance::OnEquipped()
 {
 	Super::OnEquipped();
 
-	UE_LOG(LogTemp, Warning, TEXT("UWeaponInstance : OnEquipped"));
+	//UE_LOG(LogTemp, Warning, TEXT("UWeaponInstance : OnEquipped"));
 
 	//if (EquipAnimLayer) {
 	//	ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld());
@@ -32,7 +32,7 @@ void UWeaponInstance::OnUnEquipped()
 {
 	Super::OnUnEquipped();
 
-	UE_LOG(LogTemp, Warning, TEXT("UWeaponInstance : UnEquipped"));
+	//UE_LOG(LogTemp, Warning, TEXT("UWeaponInstance : UnEquipped"));
 
 	//if (EquipAnimLayer) {
 	//	ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld());
@@ -48,7 +48,12 @@ void UWeaponInstance::OnHanded(bool EquipMotion)
 	if (ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld())) {
 
 		bEquiped = EquipMotion;
-		Character->SetAnimLayer(EquipMotion ? EquippedLayerset.EquipAnimLayer : EquippedLayerset.DefaultLayer);
+
+		TSubclassOf<UAnimInstance> NewAnimLayer = EquipMotion ? EquippedLayerset.EquipAnimLayer : EquippedLayerset.DefaultLayer;
+		FAnimMontageSet NewMontageSet = EquippedMontageset;
+
+		Character->SetAnimData(NewAnimLayer, NewMontageSet);
+
 
 		///*Attach Weapon Bone*/
 		if (EquipMotion) {

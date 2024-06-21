@@ -41,7 +41,7 @@ void UW_RootItem::ActiveList()
 		//UE_LOG(LogTemp, Warning, TEXT("[UW_RootItem] ActiveList"));
 		for (UItemInstance* Item : RootItems) {
 			if (UW_RootItemSlot* RootItemSlot = Cast<UW_RootItemSlot>(CreateWidget(GetWorld(), SlotWidgetclass))) {
-				UE_LOG(LogTemp, Warning, TEXT("[UW_RootItem] : ActiveList"));
+				//UE_LOG(LogTemp, Warning, TEXT("[UW_RootItem] : ActiveList"));
 				SB_RootItemList->AddChild(RootItemSlot);
 				FMargin NewPadding;
 				//NewPadding.Left = 10.f;
@@ -77,7 +77,6 @@ void UW_RootItem::Scroll(bool IsSelectUp)
 
 void UW_RootItem::SelectSlot(int32 SlotIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SLECT SLOT INDEX : %d"), SlotIndex);
 	if (UW_RootItemSlot* SelectSolt = Cast<UW_RootItemSlot>(SB_RootItemList->GetChildAt(SlotIndex))) {
 		SelectSolt->SetSelect(true);
 	}

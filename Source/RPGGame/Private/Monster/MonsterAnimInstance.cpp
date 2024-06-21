@@ -40,7 +40,6 @@ void UMonsterAnimInstance::UpdateAnimProperty()
 	//2D Size == vector length XY
 	CurrentPawnSpeed = Velocity.Size2D();
 
-	//MovementComponent->UseAccelerationForPathFollowing(true);
 	FVector Acceleration = MovementComponent->GetCurrentAcceleration();
 
 	if (/*Acceleration != FVector(0.0f, 0.0f, 0.0f) &&*/ CurrentPawnSpeed > 3.0f) {
@@ -62,7 +61,6 @@ void UMonsterAnimInstance::PlayAttackMontage()
 
 void UMonsterAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack Combo222222 : %d"), NewSection);
 	Montage_SetNextSection(GetAttackMontageSectionName(NewSection - 1), GetAttackMontageSectionName(NewSection), MonsterAnimation.AttackMontage);
 }
 
@@ -82,7 +80,6 @@ void UMonsterAnimInstance::AnimNotify_NextAttackNotify()
 void UMonsterAnimInstance::AnimNotify_EndNotify()
 {
 	//Attack 시 Truning End 시기를 설정
-	UE_LOG(LogTemp, Warning, TEXT("END NOTIFY"));
 	//OwningCharacter->bBeDamaged = false;
 	TurningNotify = false;
 }

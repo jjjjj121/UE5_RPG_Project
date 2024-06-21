@@ -38,11 +38,11 @@ AMonster_AI::AMonster_AI()
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
 	//set Collision
-	GetCapsuleComponent()->SetCollisionProfileName(FName("Monster"));
-	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+	//GetCapsuleComponent()->SetCollisionProfileName(FName("Monster"));
+	//GetCapsuleComponent()->SetGenerateOverlapEvents(true);
 
-	//GetMesh()->SetCollisionProfileName(FName("Monster"));
-	//GetMesh()->SetGenerateOverlapEvents(true);
+	GetMesh()->SetCollisionProfileName(FName("Monster"));
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 }
 
@@ -92,15 +92,12 @@ void AMonster_AI::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AMonster_AI::SetUnit(UDataTable* MonsterTable, FName MonsterName_)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SET UNIT"));
-
 	if (MonsterTable) {
 
 		FMonsterTable* MData;
 
 		//랜덤 스폰
 		if (MonsterName_.IsNone()) {
-			UE_LOG(LogTemp, Warning, TEXT("RANDOM UNIT SET"));
 			TArray<FName> RowNames = MonsterTable->GetRowNames();
 			FName RandomSeed = RowNames[FMath::RandRange(0, RowNames.Num())];
 			MData = MonsterTable->FindRow<FMonsterTable>(RandomSeed, FString(""));
@@ -148,7 +145,6 @@ void AMonster_AI::SetUnit(UDataTable* MonsterTable, FName MonsterName_)
 
 		}
 		else {
-			UE_LOG(LogTemp, Warning, TEXT("EEROR : Not Valid Monster Name"));
 			Destroy();
 		}
 	}
@@ -165,11 +161,10 @@ void AMonster_AI::SetMontage_Lamda()
 				if (IsComboInputOn) {
 					AttackStartComboState();
 					MonsterAnimInstance->JumpToAttackMontageSection(CurrentCombo);	//다음 콤보 Montage로 switching
-					UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
+					//UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
 				}
 			}
 			});
-		UE_LOG(LogTemp, Warning, TEXT("SET MONSTER ANIM CLASS"));
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("MONSTER ANIM CLASS NOT VALID"));
@@ -236,8 +231,6 @@ void AMonster_AI::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void AMonster_AI::OnReactMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnReactMontageEnded"));
-
 	AI_Controller->GetBlackboardComponent()->SetValueAsBool(AMonsterAIController::Key_CanSeePlayer, true);
 
 	bRunningHit = false;
@@ -296,22 +289,22 @@ int32 AMonster_AI::CalculateDirectionIndex(float Direction)
 {
 	/*Hit Front*/
 	if (Direction >= -45.f && Direction <= 45.f) {
-		UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Front"));
+		//UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Front"));
 		return 0;
 	}
 	/*Hit Right*/
 	else if (Direction > 45.f && Direction <= 135.f) {
-		UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Right"));
+		//UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Right"));
 		return 1;
 	}
 	/*Hit Left*/
 	else if (Direction >= -135.f && Direction < -45.f) {
-		UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Left"));
+		//UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Left"));
 		return 2;
 	}
 	/*Hit Back*/
 	else if ((Direction >= -180.f && Direction < -135.f) || (Direction >= 135.f && Direction < 180.f)) {
-		UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Back"));
+		//UE_LOG(LogTemp, Warning, TEXT("MONSTER HTI Back"));
 		return 3;
 	}
 
@@ -329,11 +322,9 @@ void AMonster_AI::HitReaction(int32 SectionIndex, bool IsCharged)
 	if (!IsDead){
 		if (IsCharged) {
 			React_Montage = MonsterAnimInstance->MonsterAnimation.Charged_Hit_Reaction_Montages;
-			UE_LOG(LogTemp, Warning, TEXT("Charged_Hit_Reaction_Montages"));
 		}
 		else {
 			React_Montage = MonsterAnimInstance->MonsterAnimation.Basic_Hit_Reaction_Montages;
-			UE_LOG(LogTemp, Warning, TEXT("Basic_Hit_Reaction_Montages"));
 		}
 
 		MonsterAnimInstance->Montage_Play(React_Montage);
@@ -345,12 +336,10 @@ void AMonster_AI::HitReaction(int32 SectionIndex, bool IsCharged)
 	}
 	else {
 		React_Montage = MonsterAnimInstance->MonsterAnimation.Death_Reaction_Montages;
-		UE_LOG(LogTemp, Warning, TEXT("Death_Reaction_Montages"));
 
 		MonsterAnimInstance->Montage_Play(React_Montage);
 		MonsterAnimInstance->Montage_JumpToSection(SectionName, React_Montage);
 
-		UE_LOG(LogTemp, Warning, TEXT("SECTION LENGTH : %f"), React_Montage->GetSectionLength(1));
 		const float TriggerRagdollTime = React_Montage->GetSectionLength(SectionIndex) - 0.1f;
 		
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -392,7 +381,7 @@ void AMonster_AI::SetRootItems()
 
 void AMonster_AI::SetRagdollPhysics()
 {
-	UE_LOG(LogTemp, Warning, TEXT("RAGDOLL"));
+	//UE_LOG(LogTemp, Warning, TEXT("RAGDOLL"));
 
 	//Tags.Add(FName(TEXT("Dead")));
 
@@ -416,7 +405,7 @@ bool AMonster_AI::IsAvailableInteraction_Implementation() const
 
 bool AMonster_AI::ExecuteInteraction_Implementation(AActor* InteractionTarget, UItemInstance* NewItemInstance)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[AMonster_AI] : ExecuteInteraction_Implementation"));
+	//UE_LOG(LogTemp, Warning, TEXT("[AMonster_AI] : ExecuteInteraction_Implementation"));
 
 	// TouchActor의 인벤토리에 추가
 	if (ACharacter* Character = Cast<ACharacter>(TouchActor))
@@ -442,7 +431,7 @@ bool AMonster_AI::ExecuteInteraction_Implementation(AActor* InteractionTarget, U
 
 void AMonster_AI::StopInteration_Implementation(AActor* InteractionTarget)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[AMonster_AI] : StopInteration_Implementation"));
+	//UE_LOG(LogTemp, Warning, TEXT("[AMonster_AI] : StopInteration_Implementation"));
 }
 
 void AMonster_AI::SetTouchActor_Implementation(AActor* NewTouchActor)

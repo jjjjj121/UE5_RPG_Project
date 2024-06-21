@@ -38,8 +38,8 @@ public:
 		bool EnableTickNotify;
 
 	/*If it is true, damage check is performed only on EndNotify*/
-	UPROPERTY(EditAnywhere)
-		bool EnableOnceNotify;
+	//UPROPERTY(EditAnywhere)
+	//	bool EnableOnceNotify;
 
 	UPROPERTY(EditAnywhere)
 		float DamageRadius = 15.f;
@@ -51,5 +51,5 @@ public:
 		TSubclassOf<UDamageType> DamageType;
 
 
-	mutable FCriticalSection DataGaurd;
+	//mutable FCriticalSection DataGaurd;
 };

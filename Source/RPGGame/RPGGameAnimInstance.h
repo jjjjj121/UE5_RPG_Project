@@ -6,12 +6,15 @@
 #include "Animation/AnimInstance.h"
 #include "EnumHeader.h"
 #include "Library/AnimEnumLibrary.h"
+#include "Library/PlayerEnumlibrary.h"
 #include "Animation/BlendSpace.h"
 #include "RPGGameAnimInstance.generated.h"
 
 //여러 함수를 동시에 실행 시킬 수 있는 델리게이트
-DECLARE_MULTICAST_DELEGATE(FOnNextAttackDelegata);
-DECLARE_MULTICAST_DELEGATE(FOnAttackHitDelegata);
+DECLARE_MULTICAST_DELEGATE(FOnNextAttackDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAttackHitDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnChargeAttackDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnEndRollDelegate);
 
 class UBehaviorAnimData;
 
@@ -19,29 +22,10 @@ UCLASS()
 class RPGGAME_API URPGGameAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-	
+
 #pragma region Property
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	EWeaponType WeaponEnum;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	bool bEquipWeapon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
-	bool bEquipShield;
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	UBehaviorAnimData* DefaultAnimData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	UBehaviorAnimData* WeaponAnimData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locomotion", Meta = (AllowprivateAccess = true))
-	UBehaviorAnimData* ShieldAnimData;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
 	float GroundDistance;
 
@@ -51,15 +35,35 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character_State_Data", Meta = (AllowprivateAccess = true))
 	bool IsGuard;
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement_Data", Meta = (AllowprivateAccess = true))
+	FVector2D InputVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rotation_Data")
+	float CurrentDirection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "OverlayType")
+	EOverlayType OverlayType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "OverlayType")
+	EPlayerMovementType StateType;
+
+
+
+public:
+	float LandableDistance;
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))
 	class ARPGGameCharacter* OwningCharacter;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "References", Meta = (AllowprivateAccess = true))
-	class UCharacterMovementComponent* MovementComponent;
+	class URPGCharacterMovementComponent* MovementComponent;
 
 public:
 	void SetIsFight(bool NewFightStance) { IsFight = NewFightStance; }
+
+	float GetGroundDistance() { return GroundDistance; }
 
 #pragma endregion
 
@@ -71,52 +75,42 @@ public:
 	virtual void NativeInitializeAnimation() override;
 
 public:
-	void UpdateWeaponShield();
-	void SetWeaponAnimData(UBehaviorAnimData* NewAnimData);
-	void SetSheildAnimData(UBehaviorAnimData* NewAnimData);
-
-	UBehaviorAnimData* GetCurBehavior();
-
-	void PlayMontage();
+	void PlayMontage(UAnimMontage* NewMontage, float Newrate = 1.f);
+	void PlayMontage_Section(UAnimMontage* NewMontage, FName NewSectionName);
 
 #pragma region Attack
-public:
-	//UPROPERTY(EditAnywhere)
-	//class UAttackBehavior* AttackBehavior;
-
 
 public:
-	FOnNextAttackDelegata OnNextAttack;
-	FOnAttackHitDelegata OnAttackHit;
+	bool bLandable = false;
 
 public:
-	void PlayAttackMontage();
-	/*Change Montage Section*/
-	void JumpToAttackMontageSection(int32 NewSection);
-	/*Get Montage Section Name*/
-	FName GetAttackMontageSectionName(int32 Section);
+	FOnNextAttackDelegate OnNextAttack;
+	FOnAttackHitDelegate OnAttackHit;
+	FOnChargeAttackDelegate OnChargeAttack;
+	FOnEndRollDelegate OnEndRoll;
 
-	UFUNCTION()
-	int32 GetMaxCombo();
+public:
+	FName GetMontageNextSectionName(FName SectionName, int32 Section);
+
+	void UpdateLandalbe();
+
 private:
 	//Notify Function
 	//충돌 처리 함수
 	UFUNCTION()
-		void AnimNotify_AttackHitNotify();
-	//Combo 실행 함수
+	void AnimNotify_AttackHitNotify();
+
 	UFUNCTION()
-		void AnimNotify_NextAttackNotify();
+	void AnimNotify_NextAttackNotify();
+
+	UFUNCTION()
+	void AnimNotify_ChargeAttackNotify();
+
+	UFUNCTION()
+	void AnimNotify_EndRoll();
 
 
 #pragma endregion 
-
-
-#pragma region Locomotion
-public:
-	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
-	UAnimationAsset* GetAnimAsset(UBehaviorAnimData* BehaviorAnimData, ELocomotionCategory LocomotionType, int32 Index = 0);
-
-#pragma endregion
 
 
 };

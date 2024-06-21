@@ -90,13 +90,12 @@ void ARPGGamePlayerController::BindAction()
 
 		//Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ARPGGamePlayerController::OnInteractPress);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ARPGGamePlayerController::OnInteractTrigger);
 
 		//Inventory
 		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnInventory);
 
 		//Attack
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnAttack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ARPGGamePlayerController::OnAttack);
 
 		//List Up Down
 		EnhancedInputComponent->BindAction(ListUpDownAction, ETriggerEvent::Started, this, &ARPGGamePlayerController::OnWheelUpDown);
@@ -124,27 +123,17 @@ void ARPGGamePlayerController::SetupWidget()
 
 void ARPGGamePlayerController::OnInteractPress(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInteractPress"));
+	if (!PossessedPlayer->IsDead) {
+		UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInteractPress"));
 
-	FWidgetParam Widgetparam;
-	Widgetparam.ActorParam = PossessedPlayer;
-
-	URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_PreesKey, Widgetparam);
-
-}
-
-void ARPGGamePlayerController::OnInteractTrigger(const FInputActionValue& Value)
-{
-	if (Value.Get<float>()) {
-		//UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnInteractTrigger %f"), Value.Get<float>());
 		FWidgetParam Widgetparam;
-		Widgetparam.FloatParam = GetWorld()->GetDeltaSeconds();
 		Widgetparam.ActorParam = PossessedPlayer;
-
-		URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_TriggerKey, Widgetparam);
+		URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_PreesKey, Widgetparam);
 	}
 
+
 }
+
 
 void ARPGGamePlayerController::OnInventory(const FInputActionValue& Value)
 {
@@ -157,11 +146,21 @@ void ARPGGamePlayerController::OnInventory(const FInputActionValue& Value)
 
 void ARPGGamePlayerController::OnAttack(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnAttack"));
+	//UE_LOG(LogTemp, Warning, TEXT("[RPGGamePlayerController] : OnAttack / %d"), Value.Get<bool>());
+
 
 	if (PossessedPlayer) {
-		/*Attack*/
-		PossessedPlayer->Attack();
+
+		PossessedPlayer->Attack(Value.Get<bool>());
+
+
+		//if (Value.Get<bool>()) {
+		//	PossessedPlayer->Charging();
+		//}
+		//else {
+		//	/*Attack*/
+		//	PossessedPlayer->Attack();
+		//}
 	}
 }
 
@@ -176,7 +175,7 @@ void ARPGGamePlayerController::OnWheelUpDown(const FInputActionValue& Value)
 		else if (WheelType == EWheelType::ListType) {
 			FWidgetParam WidgetParam;
 			Value.Get<float>() >= 1.f ? WidgetParam.BoolParam = true : WidgetParam.BoolParam = false;
-			
+
 			URPGWidgetFunctionLibrary::ExecuteWidgetSingle(GetWorld(), EWidgetNames::Interaction, EWidgetFunctionNames::Interaction_SelectRoot, WidgetParam);
 
 			//if (Value.Get<float>() >= 1.f) {

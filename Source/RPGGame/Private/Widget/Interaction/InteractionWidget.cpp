@@ -79,7 +79,6 @@ void UInteractionWidget::PressInteractKey(FWidgetParam WidgetParam)
 	/*OpenRootItems*/
 	if (InteractType == EInteractionType::InteractItem) {
 		InteractType = EInteractionType::RootItem;
-		UE_LOG(LogTemp, Warning, TEXT("[UInteractionWidget] : Open Root items"));
 	}
 	else if (InteractType == EInteractionType::RootItem) {
 		if (TriggerTime <= 0) {
@@ -87,7 +86,6 @@ void UInteractionWidget::PressInteractKey(FWidgetParam WidgetParam)
 			if (ARPGGameCharacter* Player = Cast<ARPGGameCharacter>(WidgetParam.ActorParam)) {
 				UItemInstance* NewInstance = BP_W_RootItem->GetSelectItemInstance();
 				if (Player->GetinteractionComponent()->ExecuteInteraction(NewInstance)) {
-					UE_LOG(LogTemp, Warning, TEXT("GET ITEM "));
 					BP_W_RootItem->GetItem();
 
 				}
@@ -113,7 +111,6 @@ void UInteractionWidget::TriggerInteractKey(FWidgetParam WidgetParam)
 				for (UItemInstance* Item : BP_W_RootItem->GetRootItems()) {
 					if (Player->GetinteractionComponent()->ExecuteInteraction(Item)) {
 						BP_W_RootItem->GetItem();
-						UE_LOG(LogTemp, Warning, TEXT("123123123123"));
 					}
 				}
 			}
@@ -126,10 +123,10 @@ void UInteractionWidget::SelectRootList(FWidgetParam WidgetParam)
 {
 	BP_W_RootItem->Scroll(WidgetParam.BoolParam);
 	
-	if (WidgetParam.BoolParam) {
-		UE_LOG(LogTemp, Warning, TEXT("LIST UP"));
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("LIST Down"));
-	}
+	//if (WidgetParam.BoolParam) {
+	//	UE_LOG(LogTemp, Warning, TEXT("LIST UP"));
+	//}
+	//else {
+	//	UE_LOG(LogTemp, Warning, TEXT("LIST Down"));
+	//}
 }

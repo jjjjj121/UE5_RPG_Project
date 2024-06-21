@@ -71,9 +71,6 @@ protected:
 		void OnInteractPress(const FInputActionValue& Value);
 
 	UFUNCTION()
-		void OnInteractTrigger(const FInputActionValue& Value);
-
-	UFUNCTION()
 	void OnInventory(const FInputActionValue& Value);
 
 	UFUNCTION()

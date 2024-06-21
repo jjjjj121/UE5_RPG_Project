@@ -9,5 +9,17 @@ enum class EPlayerMovementType : uint8
 	Normal,
 	Walk,
 	Sprint,
+	Jump,
+	Fall,
+	Roll,
+	Dodge,
 };
 
+UENUM(BlueprintType)
+enum class EPlayerStateType : uint8
+{
+	Locomotion,
+	Fall,
+	Roll,
+	Dodge,
+};

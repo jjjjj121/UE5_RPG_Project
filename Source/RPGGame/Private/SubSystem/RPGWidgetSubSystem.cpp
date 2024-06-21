@@ -77,20 +77,20 @@ URPGUserWidgetBase* URPGWidgetSubSystem::PushWidget(FName WidgetName, EWidgetLay
 		{
 		case EWidgetAnchorType::None:
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%s : None"), *WidgetName.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("%s : None"), *WidgetName.ToString());
 			break;
 		}
 		case EWidgetAnchorType::Center:
 		{
 			CPSlot->SetAnchors(FAnchors(0.5f, 0.5f));
-			UE_LOG(LogTemp, Warning, TEXT("%s : Center"), *WidgetName.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("%s : Center"), *WidgetName.ToString());
 			break;
 		}
 		case EWidgetAnchorType::Fill:
 		{
 			CPSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
 			CPSlot->SetOffsets(FMargin(0.f));
-			UE_LOG(LogTemp, Warning, TEXT("%s : Fill"), *WidgetName.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("%s : Fill"), *WidgetName.ToString());
 			break;
 		}
 		}

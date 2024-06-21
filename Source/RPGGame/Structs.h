@@ -17,13 +17,13 @@ public:
 		int32 Level = 1;
 
 	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float MaxHP = 100;
+		float MaxHP = 200;
 
 	UPROPERTY(BlueprintReadOnly, Category = "STATE")
 		float MaxMP;
 
 	UPROPERTY(BlueprintReadOnly, Category = "STATE")
-		float CurHP = 100;
+		float CurHP = 200;
 
 	UPROPERTY(BlueprintReadOnly, Category = "STATE")
 		float CurMP;

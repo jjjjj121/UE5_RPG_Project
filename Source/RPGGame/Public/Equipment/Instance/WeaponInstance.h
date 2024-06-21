@@ -31,6 +31,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	FAnimMontageSet EquippedMontageset;
 
+
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "SocketName")
 	FName EquipSocket;

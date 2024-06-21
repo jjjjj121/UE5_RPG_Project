@@ -32,11 +32,15 @@
 //////////////////////////////////////////////////////////////////////////
 // ARPGGameCharacter
 
-void ARPGGameCharacter::SetAnimLayer(TSubclassOf<UAnimInstance> NewAnimLayer)
+void ARPGGameCharacter::SetAnimData(TSubclassOf<UAnimInstance> NewAnimLayer, FAnimMontageSet NewMontageSet)
 {
 	TSubclassOf<UAnimInstance> AnimLayer = NewAnimLayer != nullptr ? NewAnimLayer : DefaultAnimLayer;
+	FAnimMontageSet MontageSet = NewMontageSet.LightAttackAnim != nullptr ? NewMontageSet : DefaultAnimMontageSet;
+
 	GetMesh()->LinkAnimClassLayers(AnimLayer);
-	
+
+	CombatComponent->SetWeaponMontageset(MontageSet);
+
 }
 
 ARPGGameCharacter::ARPGGameCharacter(const class FObjectInitializer& ObjectInitializer)
@@ -45,7 +49,7 @@ ARPGGameCharacter::ARPGGameCharacter(const class FObjectInitializer& ObjectIniti
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -77,16 +81,14 @@ ARPGGameCharacter::ARPGGameCharacter(const class FObjectInitializer& ObjectIniti
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-
-	//Init Attack Combo
-	AttackEndComboState();
-
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
 
 	CombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
-	
+
 	/*Input Mapping*/
 	EnhancedInputMapping();
+
+
 
 
 }
@@ -114,21 +116,25 @@ void ARPGGameCharacter::BeginPlay()
 
 	/*Anim Instance Init*/
 	AnimInstance = Cast<URPGGameAnimInstance>(GetMesh()->GetAnimInstance());
-	GetMesh()->LinkAnimClassLayers(DefaultAnimLayer);
+	//GetMesh()->LinkAnimClassLayers(DefaultAnimLayer);
 
 
-	AnimInstance->OnMontageEnded.AddDynamic(this, &ARPGGameCharacter::OnAttackMontageEnded);
-	
-	//OnNextAttack 델리게이트에 람다 함수식 추가 -> Broadcast시 호출
-	AnimInstance->OnNextAttack.AddLambda([this]()->void {
-		CanNextCombo = false;
-		if (IsComboInputOn) {
-			AttackStartComboState();
-			AnimInstance->JumpToAttackMontageSection(CurrentCombo);	//다음 콤보 Montage로 switching
-			TurnAttack();
-			//UE_LOG(LogTemp, Warning, TEXT("Attack Combo : %d"), CurrentCombo);
+	AnimInstance->OnEndRoll.AddLambda([this]()->void {
+		if (URPGCharacterMovementComponent* MovementComp = CastChecked<URPGCharacterMovementComponent>(GetMovementComponent())) {
+			MovementComp->bJumpable = true;
+			PlayerState = EPlayerStateType::Locomotion;
+			AnimInstance->StateType = EPlayerMovementType::Normal;
+
+			//if (CombatComponent->GetLockedOn()) {
+			//	CombatComponent->ActivateLockon();
+			//}
+
+
+			UE_LOG(LogTemp, Warning, TEXT("[AnimNotify_EndRoll]"));
 		}
 		});
+
+	SetAnimData(nullptr, FAnimMontageSet());
 
 }
 
@@ -136,33 +142,32 @@ void ARPGGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-
 }
 
 float ARPGGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	
+
 	UE_LOG(LogClass, Warning, TEXT("Damage : %f"), Damage);
 
 	ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState());
 	if (MyPlayerState) {
-		MyPlayerState->UpdateHP(-Damage);
+		MyPlayerState->UpdateHP(Damage);
 
 		if (MyPlayerState->State.CurHP <= 0) {
 			IsDead = true;
 		}
 	}
 
+	/*Direction Calculate*/
 	FRotator Delta_A = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), DamageCauser->GetActorLocation());
 	FRotator Delta_B = GetActorRotation();
 	FRotator Delta_Rotator = UKismetMathLibrary::NormalizedDeltaRotator(Delta_A, Delta_B);
 
-	int32 Direction_Index = CalculateDirectionIndex(Delta_Rotator.Yaw);
+	FName Direction_Index = ConvertDirection(Delta_Rotator.Yaw);
 
 	if (!IsDead) {
-		
+
 		// If you need the DamageType object like in blueprint, this is how you do it:
 		UDamageType const* const DamageTypeCDO = DamageEvent.DamageTypeClass ? DamageEvent.DamageTypeClass->GetDefaultObject<UDamageType>() : GetDefault<UDamageType>();
 
@@ -171,18 +176,26 @@ float ARPGGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		UAnimMontage* HitReact_Montage = nullptr;
 		if (MyDamageType) {
 			/*Damage Type : Charged Attack*/
-			if (MyDamageType->IsCharged) {
-				HitReact_Montage = Charged_Hit_Reaction_Montages.FindRef(Direction_Index);
-				//UE_LOG(LogTemp, Warning, TEXT("CHARGED"));
-			}
-			/*Damage Type : Basic Attack*/
-			else {
-				HitReact_Montage = Basic_Hit_Reaction_Montages.FindRef(Direction_Index);
-				//UE_LOG(LogTemp, Warning, TEXT("BASIC"));
+
+			switch (MyDamageType->DamageType)
+			{
+			case EDamageType::Light:
+				HitReact_Montage = DefaultAnimMontageSet.AdditiveHitReact;
+				break;
+			case EDamageType::Normal:
+				HitReact_Montage = DefaultAnimMontageSet.AdditiveHitReact;	//TEST
+				//HitReact_Montage = DefaultAnimMontageSet.NormalHitReact;
+				break;
+			case EDamageType::Heavy:
+				HitReact_Montage = DefaultAnimMontageSet.HeavyHitReact;
+				break;
+			default:
+				break;
 			}
 		}
-		
+
 		AnimInstance->Montage_Play(HitReact_Montage);
+		AnimInstance->Montage_JumpToSection(Direction_Index, HitReact_Montage);
 
 		ReceivingDamage(MyPlayerState->State.MaxHP, MyPlayerState->State.CurHP);
 	}
@@ -191,63 +204,58 @@ float ARPGGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		DoDeath(Direction_Index);
 	}
 
-	
+
 
 	return Damage;
 }
 
-void ARPGGameCharacter::Attack()
+void ARPGGameCharacter::Attack(bool IsPressed)
 {
-	//공격 중인경우
-	if (IsAttacking) {
-		//다음 콤보가 있는 경우
-		if (CanNextCombo) {
-			IsComboInputOn = true;
-		}
-	}
-	//첫 Attack 콤보인 경우
-	else {
-		UnCrouch();
-		AttackStartComboState();
-		AnimInstance->PlayAttackMontage();	//Montage 실행
-		TurnAttack();
-		IsAttacking = true;
-	}
+	CombatComponent->Attack(IsPressed);
 }
 
-bool ARPGGameCharacter::GetIsAttacking()
+void ARPGGameCharacter::Charging()
 {
-	return IsAttacking;
+	CombatComponent->Charging();
 }
 
-int32 ARPGGameCharacter::CalculateDirectionIndex(float Direction)
+
+FName ARPGGameCharacter::ConvertDirection(float Direction)
 {
 	/*Hit Front*/
 	if (Direction >= -45.f && Direction <= 45.f) {
-		return 1;
-	}
-	/*Hit Right*/
-	else if (Direction > 45.f && Direction <= 135.f) {
-		return 2;
-	}
-	/*Hit Left*/
-	else if (Direction >= -135.f && Direction < -45.f) {
-		return 3;
+		return FName(TEXT("Fwd"));
 	}
 	/*Hit Back*/
 	else if ((Direction >= -180.f && Direction < -135.f) || (Direction >= 135.f && Direction < 180.f)) {
-		return 4;
+		return FName(TEXT("Bwd"));
+	}
+	/*Hit Right*/
+	else if (Direction > 45.f && Direction <= 135.f) {
+		return FName(TEXT("Right"));
+	}
+	/*Hit Left*/
+	else if (Direction >= -135.f && Direction < -45.f) {
+		return FName(TEXT("Left"));
 	}
 
 	/*Error*/
-	return -1;
+	return FName();
 }
 
-void ARPGGameCharacter::DoDeath(int32 DirectionIndex)
+void ARPGGameCharacter::DoDeath(FName DirectionIndex)
 {
-	AnimInstance->Montage_Play(Death_Reaction_Montages.FindRef(DirectionIndex));
+	if (UAnimMontage* DeathReact_Montage = DeathReact.FindRef(DirectionIndex)) {
+		//UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::DoDeath] : DirectionIndex _ %s"), *DirectionIndex.ToString());
 
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AnimInstance->Montage_Play(DeathReact_Montage);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		/*TEST*/
+		
+		IsDead = true;
+
+	}
 }
 
 float ARPGGameCharacter::GetDamage()
@@ -256,59 +264,10 @@ float ARPGGameCharacter::GetDamage()
 	if (MyPlayerState) {
 		return MyPlayerState->State.Damage;
 	}
-	
+
 	return -1.f;
 }
 
-void ARPGGameCharacter::TurnAttack()
-{
-	if (ARPGGamePlayerController* PlayerController = Cast<ARPGGamePlayerController>(Controller)) {
-		PlayerController->StartTurnTiemline();
-	}
-}
-
-//void ARPGGameCharacter::SetFightStance(bool NewStance)
-//{
-//	IsFight = NewStance;
-//
-//	if (IsFight == true) {
-//
-//		UE_LOG(LogTemp, Warning, TEXT("On Fight Stance : Start"));
-//
-//		GetWorld()->GetTimerManager().SetTimer(
-//			OnFightTimerHandle,
-//			FTimerDelegate::CreateLambda([this]() {
-//				UE_LOG(LogTemp, Warning, TEXT("On Fight Stance : Timer"));
-//				IsFight = false;
-//				}), 10.f, false);
-//	}
-//
-//
-//}
-
-void ARPGGameCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	IsAttacking = false;
-	AttackEndComboState();
-}
-
-void ARPGGameCharacter::AttackStartComboState()
-{
-	CanNextCombo = true;
-	IsComboInputOn = false;
-	//SetFightStance(true);
-	AnimInstance->SetIsFight(true);
-	CurrentCombo = FMath::Clamp<int32>(CurrentCombo +1, 1, AnimInstance->GetMaxCombo());
-
-
-}
-
-void ARPGGameCharacter::AttackEndComboState()
-{
-	CanNextCombo = false;
-	IsComboInputOn = false;
-	CurrentCombo = 0;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -317,7 +276,7 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -337,13 +296,16 @@ void ARPGGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 		//Sprint
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnSprint);
 
+		//Roll
+		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnRoll);
+
 		//Equip
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnEquip);
 
 		//Sprint
 		EnhancedInputComponent->BindAction(GuardAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnGuard);
 
-		//Equip
+		//Lockon
 		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &ARPGGameCharacter::OnLockOn);
 	}
 
@@ -353,8 +315,27 @@ void ARPGGameCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
+	//InputVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr){
+	/*Calculate Local InputVec*/
+	FRotator ControlRotation = FRotator::ZeroRotator;
+	ControlRotation.Yaw = GetControlRotation().Yaw;
+
+	FVector ForwardVec = UKismetMathLibrary::GetForwardVector(ControlRotation);
+	FVector RightVec = UKismetMathLibrary::GetRightVector(ControlRotation);
+
+	FVector InputVec = (ForwardVec * MovementVector.Y) + (RightVec * MovementVector.X);
+	FVector NewVec = GetActorTransform().InverseTransformVectorNoScale(InputVec);
+
+	LocalInputVector.X = NewVec.Y;
+	LocalInputVector.Y = NewVec.X;
+
+	//float Degree = UKismetMathLibrary::DegAtan2(LocalInputVector.Y, LocalInputVector.X);
+
+	//UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::Move] : Degree _ %f"), Degree);
+
+
+	if (Controller != nullptr) {
 		if (ARPGGamePlayerState* MyPlayerState = Cast<ARPGGamePlayerState>(GetPlayerState())) {
 			if (!IsDead) {
 				// find out which way is forward
@@ -370,6 +351,7 @@ void ARPGGameCharacter::Move(const FInputActionValue& Value)
 				// add movement 
 				AddMovementInput(ForwardDirection, MovementVector.Y);
 				AddMovementInput(RightDirection, MovementVector.X);
+
 			}
 		}
 	}
@@ -389,32 +371,28 @@ void ARPGGameCharacter::Look(const FInputActionValue& Value)
 }
 
 
-
-//void ARPGGameCharacter::OnCrouch(const FInputActionValue& Value)
-//{
-//	if (const URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
-//
-//		if (bIsCrouched || MyMoveComp->bWantsToCrouch) {
-//			UnCrouch();
-//		}
-//		else if (MyMoveComp->IsMovingOnGround()) {
-//			Crouch();
-//		}
-//	}
-//	//UE_LOG(LogTemp, Warning, TEXT("CROUCH"));
-//}
-
 void ARPGGameCharacter::OnWalk(const FInputActionValue& Value)
 {
-	if (URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
-		if (MovementType != EPlayerMovementType::Walk) {
-			MyMoveComp->MaxWalkSpeed = 200.f;
-			MovementType = EPlayerMovementType::Walk;
+	if (URPGCharacterMovementComponent* MovementComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
+
+		/*예외 처리*/
+		if (CombatComponent->GetIsGuard() || MovementComp->IsFalling()) {
+			return;
+		}
+
+
+
+		if (MovementComp->PlayerState != EPlayerMovementType::Walk) {
+			MovementComp->MaxWalkSpeed = 200.f;
+			//MovementType = EPlayerMovementType::Walk;
+			MovementComp->PlayerState = EPlayerMovementType::Walk;
 		}
 		else {
-			MyMoveComp->MaxWalkSpeed = 400.f;
-			MovementType = EPlayerMovementType::Normal;
+			MovementComp->MaxWalkSpeed = 400.f;
+			//MovementType = EPlayerMovementType::Normal;
+			MovementComp->PlayerState = EPlayerMovementType::Normal;
 		}
+
 	}
 
 }
@@ -422,25 +400,91 @@ void ARPGGameCharacter::OnWalk(const FInputActionValue& Value)
 void ARPGGameCharacter::OnSprint(const FInputActionValue& Value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("VALUE : %f"), Value.Get<float>());
-	
-	if (URPGCharacterMovementComponent* MyMoveComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
+
+	if (URPGCharacterMovementComponent* MovementComp = CastChecked<URPGCharacterMovementComponent>(GetCharacterMovement())) {
+
+		/*예외 처리*/
+		if (CombatComponent->GetIsGuard() || MovementComp->IsFalling()) {
+			return;
+		}
+
+
 		if (Value.Get<float>() > 0.f) {
-			MyMoveComp->MaxWalkSpeed = 600.f;
-			MovementType = EPlayerMovementType::Sprint;
+			MovementComp->MaxWalkSpeed = 600.f;
+			MovementComp->PlayerState = EPlayerMovementType::Sprint;
+			//MovementType = EPlayerMovementType::Sprint;
+
+
 		}
 		else {
-			MyMoveComp->MaxWalkSpeed = 400.f;
-			MovementType = EPlayerMovementType::Normal;
+			MovementComp->MaxWalkSpeed = 400.f;
+			MovementComp->PlayerState = EPlayerMovementType::Normal;
+			//MovementType = EPlayerMovementType::Normal;
 		}
 
 	}
 
 }
 
+void ARPGGameCharacter::OnRoll(const FInputActionValue& Value)
+{
+	if (!AnimInstance->IsAnyMontagePlaying()) {
+		URPGCharacterMovementComponent* MovementComp = CastChecked<URPGCharacterMovementComponent>(GetMovementComponent());
+		if (!MovementComp->IsFalling()) {
+			UAnimMontage* PlayMontage;
+
+
+			//MovementComp->bOrientRotationToMovement = true;
+			//bUseControllerRotationYaw = false;
+
+			/*Roll ? Dodge*/
+			if (GetVelocity().Length() > 0) {
+				PlayMontage = DefaultAnimMontageSet.RollAnim;
+				MovementComp->PlayerState = EPlayerMovementType::Roll;
+
+				AnimInstance->InputVector = LocalInputVector;
+
+				///*TEST*/
+				//if(CombatComponent->GetLockedOn()){
+				//	FVector CurAcceleration = MovementComp->GetCurrentAcceleration();
+				//	FVector Velocity = GetVelocity();
+
+				//	FVector AccelerationDirection = UKismetMathLibrary::Divide_VectorFloat(CurAcceleration - Velocity, GetWorld()->GetDeltaSeconds());
+				//	FRotator NewRotation = UKismetMathLibrary::Conv_VectorToRotator(AccelerationDirection);
+
+				//	SetActorRotation(NewRotation);
+				//	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+
+				//	//DisableInput(PlayerController);
+				//}
+				//
+				//AnimInstance->PlayMontage(PlayMontage);
+				AnimInstance->StateType = EPlayerMovementType::Roll;
+
+				//AnimInstance->Montage_JumpToSection(ConvertDirection(AnimInstance->CurrentDirection), PlayMontage);
+			}
+			else {
+				PlayMontage = DefaultAnimMontageSet.DodgeAnim;
+				MovementComp->PlayerState = EPlayerMovementType::Dodge;
+				//AnimInstance->StateType = EPlayerMovementType::Dodge;
+
+				//AnimInstance->PlayMontage(PlayMontage);
+			}
+
+
+
+			MovementComp->bJumpable = false;
+		}
+	}
+
+
+
+}
+
 void ARPGGameCharacter::OnEquip(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnEquip"));
-
+	//UE_LOG(LogTemp, Warning, TEXT("OnEquip"));
+	
 	if (ARPGGamePlayerController* PlayerController = Cast<ARPGGamePlayerController>(Controller)) {
 		if (UAC_UserMenuComponent* UserMenuComponent = PlayerController->FindComponentByClass<UAC_UserMenuComponent>()) {
 			UserMenuComponent->OnHandedWeapon();
@@ -465,16 +509,21 @@ void ARPGGameCharacter::OnGuard(const FInputActionValue& Value)
 
 void ARPGGameCharacter::OnLockOn(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnLockOn] : Press Key"));
-
-	CombatComponent->GetLockedOn() ? CombatComponent->DeactivateLockon() : CombatComponent->ActivateLockon();
-
+	//UE_LOG(LogTemp, Warning, TEXT("[ARPGGameCharacter::OnLockOn] : Press Key"));
+	if (!IsDead) {
+		CombatComponent->GetLockedOn() ? CombatComponent->DeactivateLockon() : CombatComponent->ActivateLockon();
+	}
 }
 
 void ARPGGameCharacter::OnJump()
 {
-	UnCrouch();
-	Jump();
+	if (!IsDead) {
+		URPGCharacterMovementComponent* MovementComp = CastChecked<URPGCharacterMovementComponent>(GetMovementComponent());
+		if (MovementComp->bJumpable && !AnimInstance->IsAnyMontagePlaying()) {
+			Jump();
+		}
+	}
+
 }
 
 
@@ -495,6 +544,11 @@ void ARPGGameCharacter::EnhancedInputMapping()
 		SprintAction = IA_Sprint.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Roll(TEXT("/Game/ThirdPerson/Input/Actions/IA_Roll.IA_Roll"));
+	if (IA_Roll.Succeeded()) {
+		RollAction = IA_Roll.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Equip(TEXT("/Game/ThirdPerson/Input/Actions/IA_Equip.IA_Equip"));
 	if (IA_Equip.Succeeded()) {
 		EquipAction = IA_Equip.Object;
@@ -511,22 +565,5 @@ void ARPGGameCharacter::EnhancedInputMapping()
 		LockOnAction = IA_LockOn.Object;
 	}
 
-}
-
-void ARPGGameCharacter::EquipWeapon()
-{
-	UWorld* world = GetWorld();
-	if (world) {
-		FActorSpawnParameters SpawnPrams;
-		SpawnPrams.Owner = this;
-
-		FRotator rotator;
-		FVector spawnlocation = GetMesh()->GetSocketLocation(FName(TEXT("Weapon")));
-		
-		//웨폰 추가
-		//Weapon = Cast<AEquipItem>(world->SpawnActor<AActor>(AEquipItem::StaticClass(), spawnlocation, rotator, SpawnPrams));
-
-	}
-	//AnimInstance->SetBehavior();
 }
 

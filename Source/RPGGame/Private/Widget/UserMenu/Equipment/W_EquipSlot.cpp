@@ -36,7 +36,7 @@ void UW_EquipSlot::Update(UItemInstance* NewItem)
 	Super::Update(NewItem);
 
 	if (ItemInstance) {
-		UE_LOG(LogTemp, Warning, TEXT("[UW_EquipSlot] : Update"));
+		//UE_LOG(LogTemp, Warning, TEXT("[UW_EquipSlot] : Update"));
 		IMG_Item->SetBrushTintColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
 	}
 	else {
@@ -67,7 +67,7 @@ void UW_EquipSlot::UnEquipItem()
 				
 				/*Animation Reset*/
 				ARPGGameCharacter* Character = URPGFunctionLibrary::GetPlayerCharacter(GetWorld());
-				Character->SetAnimLayer(nullptr);
+				Character->SetAnimData(nullptr, FAnimMontageSet());
 
 				//if (UPlayerCombatComponent* CombatComponent = Character->FindComponentByClass<UPlayerCombatComponent>()) {
 				//	CombatComponent->SetWeaponAnimData(nullptr);
